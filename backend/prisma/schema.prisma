@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    Int     @id @default(autoincrement())
+  email String  @unique
+  name  String?
+
+  Chore     Chore[]
+  Household Household[]
+  Points    Points[]
+}
+
+model Chore {
+  id        Int    @id @default(autoincrement())
+  name      String
+  frequency Int
+  userId    Int
+  user      User   @relation(fields: [userId], references: [id])
+
+  Household Household[]
+}
+
+model Household {
+  id     Int     @id @default(autoincrement())
+  name   String
+  chores Chore[]
+  users  User[]
+}
+
+//one to many user to points
+
+model Points {
+  id        Int      @id @default(autoincrement())
+  points    Int
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+}

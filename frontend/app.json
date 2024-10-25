@@ -1,11 +1,11 @@
 {
   "expo": {
     "name": "Chorely",
-    "slug": "Chorely",
+    "slug": "chorely",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "frontend",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/splash.png",

@@ -44,12 +44,25 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
     _source: unknown,
     { email, name }: { email: string; name?: string }
   ) => {
-    return this.prisma.user.create({
-      data: {
-        email,
-        name,
-      },
+    const existing = await prisma.user.findUnique({
+      where: { email },
     });
+    if (existing) {
+      throw new Error("User already exists");
+    }
+    try {
+      // Create a new user if one does not already exist
+      const user = await this.prisma.user.create({
+        data: {
+          email,
+          name,
+        },
+      });
+      return user;
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   };
   private userResolver = async (
     _source: unknown,
@@ -60,6 +73,9 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
     const user = await this.prisma.user.findUnique({
       where: {
         id: id,
+      },
+      include: {
+        household: true,
       },
     });
     return user;

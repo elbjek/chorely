@@ -3,7 +3,6 @@ import { PrismaClient } from "@prisma/client";
 import dotenv from "dotenv";
 import schema from "./schema/schema";
 dotenv.config();
-const prisma = new PrismaClient();
 
 // // GraphQL schema
 // const typeDefs = gql`

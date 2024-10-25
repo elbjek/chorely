@@ -15,38 +15,57 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id          Int     @id @default(autoincrement())
+  email       String  @unique
+  name        String?
+  householdId Int?
 
-  Chore     Chore[]
-  Household Household[]
-  Points    Points[]
+  chores    Chore[]
+  points    Point[]
+  household Household? @relation(fields: [householdId], references: [id])
+
+  @@map("user")
 }
 
 model Chore {
-  id        Int    @id @default(autoincrement())
-  name      String
-  frequency Int
-  userId    Int
-  user      User   @relation(fields: [userId], references: [id])
+  id              Int              @id @default(autoincrement())
+  name            String
+  frequency       Int
+  userId          Int
+  user            User             @relation(fields: [userId], references: [id])
+  point           Int
+  householdChores HouseholdChore[]
 
-  Household Household[]
+  @@map("chore")
 }
 
 model Household {
-  id     Int     @id @default(autoincrement())
-  name   String
-  chores Chore[]
-  users  User[]
+  id              Int              @id @default(autoincrement())
+  name            String
+  householdChores HouseholdChore[]
+  users           User[]
+
+  @@map("household")
+}
+
+model HouseholdChore {
+  householdId Int
+  choreId     Int
+  household   Household @relation(fields: [householdId], references: [id])
+  chore       Chore     @relation(fields: [choreId], references: [id])
+
+  @@id([householdId, choreId])
+  @@map("household_chore")
 }
 
 //one to many user to points
 
-model Points {
+model Point {
   id        Int      @id @default(autoincrement())
   points    Int
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+
+  @@map("point")
 }

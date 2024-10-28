@@ -12,7 +12,8 @@ import "react-native-reanimated";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { ApolloProvider } from "@apollo/client";
 import { client } from "@/ApolloClient";
-
+import { SafeAreaView, StatusBar, View } from "react-native";
+import "@/global.css";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -32,9 +33,34 @@ export default function RootLayout() {
     return null;
   }
 
+  const MyStatusBar = ({ backgroundColor, ...props }: any) => (
+    <View
+      style={[
+        {
+          backgroundColor: colorScheme === "dark" ? "#463F3A" : "#f4f4f4",
+        },
+      ]}
+    >
+      <SafeAreaView>
+        <StatusBar
+          barStyle={colorScheme === "light" ? "dark-content" : "light-content"}
+          translucent
+          backgroundColor={backgroundColor}
+          {...props}
+        />
+      </SafeAreaView>
+    </View>
+  );
+
   return (
     <ApolloProvider client={client}>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={colorScheme === "light" ? DarkTheme : DefaultTheme}>
+        {/* <StatusBar
+          // barStyle={colorScheme === "dark" ? "dark-content" : "light-content"}
+          backgroundColor={colorScheme === "dark" ? "red" : "#463F3A"}
+          hidden={true}
+        /> */}
+        <MyStatusBar />
         <Stack initialRouteName="(auth)/sign-in">
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />

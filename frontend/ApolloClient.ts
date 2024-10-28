@@ -4,7 +4,7 @@ import fetch from "isomorphic-fetch";
 
 const client = new ApolloClient({
   link: new HttpLink({
-    uri: "http://192.168.0.166:4000/graphql", // Set this URI only once
+    uri: "http://192.168.0.49:4000/graphql", // Set this URI only once
     fetch,
   }),
   cache: new InMemoryCache(),

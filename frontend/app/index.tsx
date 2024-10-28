@@ -2,7 +2,6 @@ import {
   StyleSheet,
   Text,
   ScrollView,
-  StatusBar,
   View,
   Image,
   Dimensions,
@@ -26,7 +25,11 @@ export class IndexPage extends Component {
           <ScrollView>
             <ThemedView style={styles.container}>
               <ThemedView style={styles.heading}>
-                <ThemedText type="title" style={styles.headingText}>
+                <ThemedText
+                  type="title"
+                  style={styles.headingText}
+                  className="text-center"
+                >
                   Welcome to Chorely
                 </ThemedText>
               </ThemedView>
@@ -73,7 +76,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   headingText: {
-    textAlign: "center",
+    // textAlign: "center",
   },
   bg: {
     backgroundColor: "#F4F3EE",

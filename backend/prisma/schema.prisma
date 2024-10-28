@@ -18,6 +18,7 @@ model User {
   id          Int     @id @default(autoincrement())
   email       String  @unique
   name        String?
+  image       String?
   householdId Int?
 
   chores    Chore[]
@@ -34,16 +35,18 @@ model Chore {
   userId          Int
   user            User             @relation(fields: [userId], references: [id])
   point           Int
+  image           String?
   householdChores HouseholdChore[]
 
   @@map("chore")
 }
 
 model Household {
-  id              Int              @id @default(autoincrement())
-  name            String
-  householdChores HouseholdChore[]
-  users           User[]
+  id                     Int              @id @default(autoincrement())
+  name                   String
+  householdInvitationURL String?
+  householdChores        HouseholdChore[]
+  users                  User[]
 
   @@map("household")
 }

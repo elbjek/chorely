@@ -2,54 +2,32 @@ import { ApolloServer, gql } from "apollo-server";
 import { PrismaClient } from "@prisma/client";
 import dotenv from "dotenv";
 import schema from "./schema/schema";
+import { verifyToken } from "./auth";
 dotenv.config();
-
-// // GraphQL schema
-// const typeDefs = gql`
-//   type User {
-//     id: ID!
-//     email: String!
-//     name: String
-//   }
-
-//   type Query {
-//     users: [User]
-//   }
-
-//   type Mutation {
-//     createUser(email: String!, name: String): User
-//   }
-// `;
-
-// // GraphQL resolvers
-// const resolvers = {
-//   Query: {
-//     users: async () => {
-//       const users = await prisma.user.findMany();
-//       console.log(users);
-//       return users;
-//     },
-//   },
-//   Mutation: {
-//     createUser: async (
-//       _: unknown,
-//       { email, name }: { email: string; name?: string }
-//     ) => {
-//       return prisma.user.create({
-//         data: {
-//           email,
-//           name,
-//         },
-//       });
-//     },
-//   },
-// };
 
 // Create Apollo Server
 const server = new ApolloServer({
   schema,
   cors: {
     origin: "*", // Allow all origins
+    credentials: true,
+  },
+  context: async ({ req }) => {
+    let authToken = null;
+    let currentUser = null;
+
+    if (req.headers && req.headers.authorization) {
+      authToken = req.headers.authorization;
+      console.log("Auth Token:", req.headers);
+      try {
+        currentUser = verifyToken(authToken);
+        // console.log("Current User:", currentUser);
+      } catch (error) {
+        console.error("Invalid token", error);
+      }
+    }
+
+    return { currentUser };
   },
 });
 

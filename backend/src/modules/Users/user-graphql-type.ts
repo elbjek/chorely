@@ -7,6 +7,7 @@ export const UserGraphQLType = new GraphQLObjectType({
     id: { type: GraphQLInt },
     name: { type: GraphQLString },
     email: { type: GraphQLString },
+    password: { type: GraphQLString },
     household: {
       type: new GraphQLObjectType({
         name: "UserHousehold",
@@ -16,5 +17,13 @@ export const UserGraphQLType = new GraphQLObjectType({
         },
       }),
     },
+  },
+});
+
+export const LoginResponseType = new GraphQLObjectType({
+  name: "LoginResponse",
+  fields: {
+    token: { type: GraphQLString },
+    user: { type: UserGraphQLType },
   },
 });

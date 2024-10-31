@@ -25,6 +25,9 @@ export class IndexPage extends Component {
           <ScrollView>
             <ThemedView style={styles.container}>
               <ThemedView style={styles.heading}>
+                <ThemedText className="text-center font-semibold pb-3">
+                  See who really gets down and dirty.
+                </ThemedText>
                 <ThemedText
                   type="title"
                   style={styles.headingText}

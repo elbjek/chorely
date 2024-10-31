@@ -5,11 +5,18 @@ import {
   GraphQLNonNull,
   GraphQLString,
 } from "graphql";
-import { UserGraphQLType } from "./user-graphql-type"; // Adjust the import path as necessary
+import { UserGraphQLType, LoginResponseType } from "./user-graphql-type"; // Adjust the import path as necessary
 import { IQueryFieldCollection } from "../../IQueryFieldCollection";
 import prisma from "../../prismaClient";
 import { IGraphQLDefaultArgs } from "../../common-types/IGraphQLDefaultArgs";
-
+import {
+  comparePassword,
+  decrypt,
+  encrypt,
+  generateToken,
+  hashPassword,
+  verifyToken,
+} from "../../auth";
 export interface User {
   id: number;
   email: string;
@@ -31,34 +38,53 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
    */
   private fetchUsers = async (): Promise<User[]> => {
     const users = await this.prisma.user.findMany();
-    console.log(users);
     return users;
   };
 
-  private UsersResolver = async () => {
+  private usersResolver = async () => {
     const users = await this.fetchUsers();
-    return users;
+
+    const decryptedUsers = users.map((user) => {
+      return {
+        ...user,
+        email: decrypt(user.email),
+      };
+    });
+    return decryptedUsers;
   };
 
   private createUserMutationResolver = async (
     _source: unknown,
-    { email, name }: { email: string; name?: string }
+    args: IGraphQLDefaultArgs,
+    context: any
   ) => {
+    const { email, password, name } = args as {
+      email: string;
+      password: string;
+      name?: string;
+    };
     const existing = await prisma.user.findUnique({
-      where: { email },
+      where: { email: encrypt(email) },
     });
     if (existing) {
       throw new Error("User already exists");
     }
+
     try {
       // Create a new user if one does not already exist
+      const hashedPassword = await hashPassword(password);
+      const hashedEmail = await encrypt(email);
       const user = await this.prisma.user.create({
         data: {
-          email,
+          email: hashedEmail,
           name,
+          password: hashedPassword,
         },
       });
-      return user;
+      return {
+        ...user,
+        email: decrypt(user.email),
+      };
     } catch (error) {
       console.error(error);
       throw error;
@@ -69,6 +95,10 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
     args: IGraphQLDefaultArgs,
     context: any
   ) => {
+    if (!context.currentUser) {
+      throw new Error("Not authenticated");
+    }
+
     const { id } = args as { id: number };
     const user = await this.prisma.user.findUnique({
       where: {
@@ -78,12 +108,65 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
         household: true,
       },
     });
-    return user;
+    return {
+      ...user,
+      email: decrypt(user.email),
+    };
   };
+
+  private loginResolver = async (
+    _source: unknown,
+    args: IGraphQLDefaultArgs,
+    context: any
+  ) => {
+    const { email, password } = args as { email: string; password: string };
+
+    const user = await this.prisma.user.findUnique({
+      where: {
+        email: encrypt(email),
+      },
+    });
+    if (!user || !(await comparePassword(password, user.password))) {
+      throw new Error("Invalid credentials");
+    }
+    const token = generateToken({
+      id: user.id.toString(),
+      email: decrypt(user.email),
+      name: user.name,
+    });
+    return {
+      user,
+      token,
+    };
+  };
+
+  private currentUserResolver = async (
+    _source: unknown,
+    args: IGraphQLDefaultArgs,
+    context: any
+  ) => {
+    // const token = context.req.headers.authorization;
+    // console.log(token, "token");
+    // if (!token) {
+    //   throw new Error("No token provided");
+    // }
+    // const user = verifyToken(token);
+    // console.log(user);
+    // if (!user) {
+    //   throw new Error("Invalid token");
+    // }
+
+    // return user;
+    if (!context.currentUser) {
+      throw new Error("Not authenticated");
+    }
+    return context.currentUser;
+  };
+
   queryFields: GraphQLFieldConfigMap<unknown, unknown> = {
     users: {
       type: new GraphQLNonNull(new GraphQLList(UserGraphQLType)),
-      resolve: this.UsersResolver,
+      resolve: this.usersResolver,
     },
     user: {
       type: UserGraphQLType,
@@ -91,6 +174,10 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
         id: { type: new GraphQLNonNull(GraphQLInt) },
       },
       resolve: this.userResolver,
+    },
+    currentUser: {
+      type: UserGraphQLType,
+      resolve: this.currentUserResolver,
     },
   };
 
@@ -100,8 +187,17 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
       args: {
         email: { type: new GraphQLNonNull(GraphQLString) },
         name: { type: GraphQLString },
+        password: { type: new GraphQLNonNull(GraphQLString) },
       },
       resolve: this.createUserMutationResolver,
+    },
+    login: {
+      type: LoginResponseType,
+      args: {
+        email: { type: new GraphQLNonNull(GraphQLString) },
+        password: { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve: this.loginResolver,
     },
   };
 }

@@ -1,69 +1,73 @@
+import React, { useState } from "react";
+import { View, TextInput, Button, Text } from "react-native";
 import {
-  Button,
-  SafeAreaView,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
-import React, { Component } from "react";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+  ApolloClient,
+  gql,
+  NormalizedCacheObject,
+  useApolloClient,
+} from "@apollo/client";
+// import { login } from "./authService";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 
-export class SignIn extends Component {
-  render() {
-    return (
-      <SafeAreaProvider>
-        <SafeAreaView>
-          <ScrollView>
-            <View style={styles.container}>
-              <Text style={styles.title}>Sign In</Text>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Email"
-                  onChangeText={(text) => this.setState({ email: text })}
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Password</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password"
-                  secureTextEntry={true}
-                  onChangeText={(text) => this.setState({ password: text })}
-                />
-              </View>
-              <Button
-                title="Sign In"
-                // onPress={() => this.signIn()}
-                // style={styles.button}
-              />
-              {/* <Text style={styles.error}>{this.state.error}</Text> */}
-              <Text
-                style={styles.link}
-                // onPress={() => this.props.navigation.navigate("SignUp")}
-              >
-                Don't have an account? Sign Up
-              </Text>
-              <View />
-            </View>
-          </ScrollView>
-        </SafeAreaView>
-      </SafeAreaProvider>
-    );
+const LOGIN_MUTATION = gql`
+  mutation Login($email: String!, $password: String!) {
+    login(email: $email, password: $password) {
+      token
+    }
   }
+`;
+
+export async function login(
+  client: ApolloClient<NormalizedCacheObject>,
+  email: string,
+  password: string
+) {
+  const { data } = await client.mutate({
+    mutation: LOGIN_MUTATION,
+    variables: { email, password },
+  });
+
+  return data.login.token;
 }
 
-export default SignIn;
+const SignIn: React.FC = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const client = useApolloClient() as ApolloClient<NormalizedCacheObject>;
+  const router = useRouter();
 
-export const styles = {
-  link: {},
-  error: {},
-  input: {},
-  inputContainer: {},
-  title: {},
-  container: {},
-  button: {},
-  label: {},
+  const handleLogin = async () => {
+    try {
+      const token = await login(client, email, password);
+      await AsyncStorage.setItem("authToken", token);
+      // Navigate to the next screen or update the UI
+      router.push("/(tabs)/");
+    } catch (err) {
+      console.error(err);
+      setError("Login failed. Please check your credentials.");
+    }
+  };
+
+  return (
+    <View>
+      <TextInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+      />
+      <TextInput
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+      />
+      {error ? <Text>{error}</Text> : null}
+      <Button title="Login" onPress={handleLogin} />
+    </View>
+  );
 };
+
+export default SignIn;

@@ -6,21 +6,28 @@ import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 import { gql, useQuery } from "@apollo/client";
 
-const GET_USERS = gql`
-  query GetUsers {
-    users {
+export const GET_CURRENT_USER = gql`
+  query GetCurrentUser {
+    currentUser {
       id
-      email
       name
+      email
     }
   }
 `;
 
 export default function HomeScreen() {
-  const { loading, error, data, refetch } = useQuery(GET_USERS, {
-    fetchPolicy: "network-only", // Force a network request
+  const { loading, error, data } = useQuery(GET_CURRENT_USER, {
+    fetchPolicy: "network-only",
   });
-  if (!data) return <ThemedText type="title">Users dont exist.</ThemedText>;
+  if (loading) return <ThemedText>Loading...</ThemedText>;
+  if (error) {
+    console.error("Error fetching data:", error);
+    return <ThemedText>Error: {error.message}</ThemedText>;
+  }
+  if (!data || !data.currentUser) {
+    return <ThemedText type="title">User doesn't exist.</ThemedText>;
+  }
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -32,7 +39,9 @@ export default function HomeScreen() {
       }
     >
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome {data.users[0].name}!</ThemedText>
+        <ThemedText type="title">
+          Welcome {data?.currentUser?.name ?? "No name"}!
+        </ThemedText>
         <HelloWave />
       </ThemedView>
     </ParallaxScrollView>

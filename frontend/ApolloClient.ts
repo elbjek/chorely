@@ -1,28 +1,40 @@
-import { ApolloClient, InMemoryCache } from "@apollo/client";
-import { HttpLink } from "@apollo/client/link/http";
-import fetch from "isomorphic-fetch";
+import {
+  ApolloClient,
+  InMemoryCache,
+  NormalizedCacheObject,
+} from "@apollo/client";
+import { ApolloLink, HttpLink } from "@apollo/client/core";
+import { setContext } from "@apollo/client/link/context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const client = new ApolloClient({
-  link: new HttpLink({
-    uri: "http://192.168.0.49:4000/graphql", // Set this URI only once
-    fetch,
-  }),
+export const createApolloLink = (authToken?: string): ApolloLink => {
+  const httpLink = new HttpLink({
+    // uri: "http://192.168.0.181:4000/graphql",
+    uri: "http://192.168.0.57:4000/graphql",
+
+    credentials: "include",
+  });
+
+  const authLink = setContext(async (_, { headers = {} }) => {
+    const token = authToken || (await AsyncStorage.getItem("authToken"));
+    console.log("Token:", token);
+    console.log("Headers before setting:", headers);
+
+    return {
+      headers: {
+        ...headers,
+        authorization: token ? `Bearer ${token}` : "",
+      },
+    };
+  });
+
+  return authLink.concat(httpLink);
+};
+
+// Ensure the client is typed with NormalizedCacheObject
+const client: ApolloClient<NormalizedCacheObject> = new ApolloClient({
+  link: createApolloLink(),
   cache: new InMemoryCache(),
 });
-
-let apolloClient: any = null;
-
-export function initializeApollo(initialState = null) {
-  const _apolloClient = apolloClient ?? client;
-
-  if (initialState) {
-    _apolloClient.cache.restore(initialState);
-  }
-
-  if (typeof window === "undefined") return _apolloClient;
-  if (!apolloClient) apolloClient = _apolloClient;
-
-  return _apolloClient;
-}
 
 export { client };

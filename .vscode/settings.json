@@ -1,5 +1,6 @@
 {
-    "cSpell.words": [
-        // "Ionicons"
-    ]
+  "cSpell.words": [
+    // "Ionicons"
+  ],
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
 }

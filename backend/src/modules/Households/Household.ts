@@ -25,13 +25,16 @@ export class Household implements IQueryFieldCollection<unknown, unknown> {
     args: { userId: number; name: string },
     context: any
   ) => {
+    if (!context.currentUser) {
+      throw new Error("Not authenticated");
+    }
     const { userId, name } = args;
     const household = await this.prisma.household.create({
       data: {
         name,
         users: {
           connect: {
-            id: userId,
+            id: context.currentUser.id,
           },
         },
       },
@@ -44,12 +47,16 @@ export class Household implements IQueryFieldCollection<unknown, unknown> {
     args: { userId: number },
     context: any
   ) => {
+    if (!context.currentUser) {
+      throw new Error("Not authenticated");
+    }
+
     const { userId } = args;
     const household = await this.prisma.household.findFirst({
       where: {
         users: {
           some: {
-            id: userId,
+            id: Number(context.currentUser.id),
           },
         },
       },

@@ -18,7 +18,7 @@ let _key = Buffer.alloc(32);
 _key = Buffer.concat([Buffer.from(ENCRYPTION_KEY)], _key.length);
 
 export const generateToken = (user: {
-  id: string;
+  id: number;
   email: string;
   name?: string;
 }) => {
@@ -31,6 +31,17 @@ export const verifyToken = (token: string) => {
     return decoded;
   } catch (error) {
     throw new Error("Invalid token");
+  }
+};
+
+export const isTokenExpired = (token: string): boolean => {
+  try {
+    const decoded = jwt.verify(token, SECRET_KEY) as { exp: number };
+    const currentTime = Math.floor(Date.now() / 1000);
+    return decoded.exp < currentTime;
+  } catch (error) {
+    console.error("Invalid token", error);
+    return true; // Consider invalid tokens as expired
   }
 };
 

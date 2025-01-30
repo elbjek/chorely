@@ -41,7 +41,14 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
     return users;
   };
 
-  private usersResolver = async () => {
+  private usersResolver = async (
+    _source: unknown,
+    args: IGraphQLDefaultArgs,
+    context: any
+  ) => {
+    if (!context.currentUser) {
+      throw new Error("Not authenticated");
+    }
     const users = await this.fetchUsers();
 
     const decryptedUsers = users.map((user) => {
@@ -130,7 +137,7 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
       throw new Error("Invalid credentials");
     }
     const token = generateToken({
-      id: user.id.toString(),
+      id: user.id,
       email: decrypt(user.email),
       name: user.name,
     });
@@ -145,18 +152,6 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
     args: IGraphQLDefaultArgs,
     context: any
   ) => {
-    // const token = context.req.headers.authorization;
-    // console.log(token, "token");
-    // if (!token) {
-    //   throw new Error("No token provided");
-    // }
-    // const user = verifyToken(token);
-    // console.log(user);
-    // if (!user) {
-    //   throw new Error("Invalid token");
-    // }
-
-    // return user;
     if (!context.currentUser) {
       throw new Error("Not authenticated");
     }

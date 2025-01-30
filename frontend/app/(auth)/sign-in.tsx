@@ -5,18 +5,12 @@ import {
   gql,
   NormalizedCacheObject,
   useApolloClient,
+  useQuery,
 } from "@apollo/client";
 // import { login } from "./authService";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
-
-const LOGIN_MUTATION = gql`
-  mutation Login($email: String!, $password: String!) {
-    login(email: $email, password: $password) {
-      token
-    }
-  }
-`;
+import { GET_CURRENT_USER, LOGIN_MUTATION } from "@/app/queries/user-query";
 
 export async function login(
   client: ApolloClient<NormalizedCacheObject>,
@@ -37,19 +31,20 @@ const SignIn: React.FC = () => {
   const [error, setError] = useState("");
   const client = useApolloClient() as ApolloClient<NormalizedCacheObject>;
   const router = useRouter();
-
+  const { data } = useQuery(GET_CURRENT_USER);
   const handleLogin = async () => {
     try {
       const token = await login(client, email, password);
       await AsyncStorage.setItem("authToken", token);
       // Navigate to the next screen or update the UI
+
       router.push("/(tabs)/");
     } catch (err) {
       console.error(err);
       setError("Login failed. Please check your credentials.");
     }
   };
-
+  console.log(data?.currentUser, "curr usr from login");
   return (
     <View>
       <TextInput

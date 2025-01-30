@@ -17,8 +17,6 @@ export const createApolloLink = (authToken?: string): ApolloLink => {
 
   const authLink = setContext(async (_, { headers = {} }) => {
     const token = authToken || (await AsyncStorage.getItem("authToken"));
-    console.log("Token:", token);
-    console.log("Headers before setting:", headers);
 
     return {
       headers: {

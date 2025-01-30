@@ -4,30 +4,28 @@ import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
-import { gql, useQuery } from "@apollo/client";
+import { gql, useApolloClient, useQuery } from "@apollo/client";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
+import { useContext, useEffect } from "react";
+import withAuth from "../withAuth";
+import { useLogout } from "../logout";
+import { GET_CURRENT_USER } from "@/app/queries/user-query";
 
-export const GET_CURRENT_USER = gql`
-  query GetCurrentUser {
-    currentUser {
-      id
-      name
-      email
-    }
-  }
-`;
-
-export default function HomeScreen() {
+const HomeScreen: React.FC = () => {
+  const router = useRouter();
+  const logout = useLogout();
   const { loading, error, data } = useQuery(GET_CURRENT_USER, {
     fetchPolicy: "network-only",
   });
+
   if (loading) return <ThemedText>Loading...</ThemedText>;
+
   if (error) {
-    console.error("Error fetching data:", error);
-    return <ThemedText>Error: {error.message}</ThemedText>;
+    // console.error("Error fetching data:", error);
+    // return <ThemedText>Error loading data</ThemedText>;
   }
-  if (!data || !data.currentUser) {
-    return <ThemedText type="title">User doesn't exist.</ThemedText>;
-  }
+
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
@@ -42,11 +40,18 @@ export default function HomeScreen() {
         <ThemedText type="title">
           Welcome {data?.currentUser?.name ?? "No name"}!
         </ThemedText>
+        <ThemedText
+          onPress={() => {
+            logout();
+          }}
+        >
+          Open Drawer
+        </ThemedText>
         <HelloWave />
       </ThemedView>
     </ParallaxScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   text: {
@@ -71,3 +76,5 @@ const styles = StyleSheet.create({
     position: "absolute",
   },
 });
+
+export default withAuth(HomeScreen);

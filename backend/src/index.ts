@@ -18,10 +18,8 @@ const server = new ApolloServer({
 
     if (req.headers && req.headers.authorization) {
       authToken = req.headers.authorization;
-      console.log("Auth Token:", req.headers);
       try {
         currentUser = verifyToken(authToken);
-        // console.log("Current User:", currentUser);
       } catch (error) {
         console.error("Invalid token", error);
       }

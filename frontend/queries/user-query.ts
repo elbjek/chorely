@@ -17,3 +17,13 @@ export const LOGIN_MUTATION = gql`
     }
   }
 `;
+
+export const CREATE_USER_MUTATION = gql`
+mutation Mutation($email: String!, $password: String!, $name: String) {
+  createUser(email: $email, password: $password, name: $name) {
+    id
+    name
+    password
+    email
+  }
+}`

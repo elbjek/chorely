@@ -15,7 +15,7 @@ const lightGray = '#f4f4f4';
 const yellowGreen ='#A6C954';
 const dunBrown = '#D0C8B3';
 const darkMossGreen = '#3D4D19';
-
+const brightRed = '#BC2C1A';
 
 export const Colors = {
   light: {
@@ -36,6 +36,7 @@ export const Colors = {
     colorLightBrown: dunBrown,
     colorDarkGreen: darkMossGreen,
     colorNavy: darkNavy,
+    colorRed: brightRed
   },
   dark: {
     text: "#f4f4f4",
@@ -54,5 +55,6 @@ export const Colors = {
     colorLightBrown: dunBrown,
     colorDarkGreen: darkMossGreen,
     colorNavy: darkNavy,
+    colorRed: brightRed
   },
 };

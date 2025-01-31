@@ -1,5 +1,5 @@
 import { Image, StyleSheet, Platform, FlatList, View } from 'react-native';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
@@ -23,7 +23,7 @@ const HomeScreen: React.FC = () => {
 
   if (error) {
     // console.error("Error fetching data:", error);
-    // return <ThemedText>Error loading data</ThemedText>;
+    return <ThemedText>Error loading data</ThemedText>;
   }
 
   return (

@@ -80,13 +80,7 @@ export default function RootLayout() {
   return (
     <ApolloProvider client={client}>
       <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
-        {/* <AuthenticationGuard /> */}
-        {/* <StatusBar
-          // barStyle={colorScheme === "dark" ? "dark-content" : "light-content"}
-          backgroundColor={colorScheme === "dark" ? "red" : "#463F3A"}
-          hidden={true}
-        /> */}
-        <MyStatusBar />
+        {/* <MyStatusBar /> */}
         <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />

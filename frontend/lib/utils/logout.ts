@@ -9,7 +9,7 @@ const useLogout = () => {
   const logout = async () => {
     await AsyncStorage.removeItem("authToken");
     await client.clearStore(); // Clear the Apollo cache
-    navigation.replace("/");
+    navigation.replace("/sign-up");
   };
 
   return logout;

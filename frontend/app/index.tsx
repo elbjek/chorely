@@ -8,12 +8,11 @@ import {
   useColorScheme,
 } from 'react-native';
 import { SafeAreaView, SafeAreaProvider } from 'react-native-safe-area-context';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useRouter } from 'expo-router';
 import { ThemedView } from '@/components/ThemedView';
 import { ThemedText } from '@/components/ThemedText';
 import MainIllustration from '@/assets/images/couple-love.svg';
-
 import {
   useApolloClient,
   ApolloClient,
@@ -57,6 +56,12 @@ const IndexPage: React.FC = () => {
   const client = useApolloClient() as ApolloClient<NormalizedCacheObject>;
   const router = useRouter();
   const { data } = useQuery(GET_CURRENT_USER);
+
+  useEffect(() => {
+    if (data?.currentUser) {
+      router.replace('/(tabs)'); // Use replace() instead of push() to prevent going back
+    }
+  }, [data?.currentUser]);
 
   const handleLogin = async () => {
     try {

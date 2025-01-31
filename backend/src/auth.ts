@@ -17,6 +17,9 @@ _iv = Buffer.concat([Buffer.from(IV)], _iv.length);
 let _key = Buffer.alloc(32);
 _key = Buffer.concat([Buffer.from(ENCRYPTION_KEY)], _key.length);
 
+
+  console.log(SECRET_KEY)
+
 export const generateToken = (user: {
   id: number;
   email: string;
@@ -27,16 +30,24 @@ export const generateToken = (user: {
 
 export const verifyToken = (token: string) => {
   try {
-    const decoded = jwt.verify(token.split(" ")[1], SECRET_KEY);
+    if (!token.startsWith("Bearer ")) {
+      throw new Error("Invalid token format");
+    }
+
+    const tokenValue = token.split(" ")[1]; // Extract actual token
+    console.log(token.split(" "),'hello')
+    const decoded = jwt.verify(tokenValue, SECRET_KEY);
     return decoded;
   } catch (error) {
-    throw new Error("Invalid token");
+    console.error("JWT Verification Error:", error);
+    return null;
   }
 };
 
 export const isTokenExpired = (token: string): boolean => {
   try {
     const decoded = jwt.verify(token, SECRET_KEY) as { exp: number };
+    console.log(decoded)
     const currentTime = Math.floor(Date.now() / 1000);
     return decoded.exp < currentTime;
   } catch (error) {

@@ -1,5 +1,4 @@
-import { ApolloServer, gql } from "apollo-server";
-import { PrismaClient } from "@prisma/client";
+import { ApolloServer } from "apollo-server";
 import dotenv from "dotenv";
 import schema from "./schema/schema";
 import { verifyToken } from "./auth";
@@ -13,20 +12,22 @@ const server = new ApolloServer({
     credentials: true,
   },
   context: async ({ req }) => {
-    let authToken = null;
+    console.log("Authorization Header:", req.headers.authorization);
+  
+    const authToken = req.headers.authorization;
     let currentUser = null;
-
-    if (req.headers && req.headers.authorization) {
-      authToken = req.headers.authorization;
+  
+    if (authToken) {
       try {
         currentUser = verifyToken(authToken);
+        return { currentUser };
       } catch (error) {
-        console.error("Invalid token", error);
+        console.error("Error verifying token:", error);
       }
     }
-
-    return { currentUser };
-  },
+  
+    return {};
+  }
 });
 
 // Start the server

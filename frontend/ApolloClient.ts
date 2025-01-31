@@ -9,8 +9,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const createApolloLink = (authToken?: string): ApolloLink => {
   const httpLink = new HttpLink({
-    // uri: "http://192.168.0.181:4000/graphql",
-    uri: "http://192.168.0.57:4000/graphql",
+    uri: "http://192.168.0.30:4000/graphql",
 
     credentials: "include",
   });

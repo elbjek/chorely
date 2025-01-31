@@ -1,8 +1,9 @@
-import React, { useEffect, ComponentType } from "react";
-import { useQuery } from "@apollo/client";
-import { useNavigation } from "@react-navigation/native";
-import { useRouter } from "expo-router";
-import { GET_CURRENT_USER } from "./queries/user-query";
+import React, { useEffect, ComponentType } from 'react';
+import { useQuery } from '@apollo/client';
+// import { useNavigation } from "@react-navigation/native";
+import { useRouter } from 'expo-router';
+import { GET_CURRENT_USER } from '../queries/user-query';
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface WithAuthProps {}
 
 const withAuth = <P extends object>(WrappedComponent: ComponentType<P>) => {
@@ -12,7 +13,7 @@ const withAuth = <P extends object>(WrappedComponent: ComponentType<P>) => {
 
     useEffect(() => {
       if (!loading && !data?.currentUser) {
-        navigation.replace("/(auth)/sign-in");
+        navigation.replace('/(auth)/sign-in');
       }
     }, [loading, data, navigation]);
 

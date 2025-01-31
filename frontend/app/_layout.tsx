@@ -2,20 +2,20 @@ import {
   DarkTheme,
   DefaultTheme,
   ThemeProvider,
-} from "@react-navigation/native";
-import { useFonts } from "expo-font";
-import { Stack, useRouter, useSegments } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
-import "react-native-reanimated";
+} from '@react-navigation/native';
+import { useFonts } from 'expo-font';
+import { Stack, useRouter, useSegments } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
+import { useEffect } from 'react';
+import 'react-native-reanimated';
+import React from 'react';
+import { useNavigationState } from '@react-navigation/native';
 
-import { useNavigationState } from "@react-navigation/native";
-
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { ApolloProvider, useQuery } from "@apollo/client";
-import { client } from "@/ApolloClient";
-import { SafeAreaView, StatusBar, View } from "react-native";
-import "@/global.css";
+import { useColorScheme } from '@/hooks/useColorScheme';
+import { ApolloProvider, useQuery } from '@apollo/client';
+import { client } from '@/ApolloClient';
+import { SafeAreaView, StatusBar, View } from 'react-native';
+import '@/global.css';
 // import { GET_CURRENT_USER } from "./(tabs)";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -23,7 +23,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
   useEffect(() => {
@@ -62,13 +62,13 @@ export default function RootLayout() {
     <View
       style={[
         {
-          backgroundColor: colorScheme === "dark" ? "#463F3A" : "#f4f4f4",
+          backgroundColor: colorScheme === 'dark' ? '#463F3A' : '#f4f4f4',
         },
       ]}
     >
       <SafeAreaView>
         <StatusBar
-          barStyle={colorScheme === "light" ? "dark-content" : "light-content"}
+          barStyle={colorScheme === 'light' ? 'dark-content' : 'light-content'}
           translucent
           backgroundColor={backgroundColor}
           {...props}
@@ -79,7 +79,7 @@ export default function RootLayout() {
 
   return (
     <ApolloProvider client={client}>
-      <ThemeProvider value={colorScheme === "light" ? DarkTheme : DefaultTheme}>
+      <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
         {/* <AuthenticationGuard /> */}
         {/* <StatusBar
           // barStyle={colorScheme === "dark" ? "dark-content" : "light-content"}
@@ -87,7 +87,7 @@ export default function RootLayout() {
           hidden={true}
         /> */}
         <MyStatusBar />
-        <Stack initialRouteName="(auth)/sign-in">
+        <Stack>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />

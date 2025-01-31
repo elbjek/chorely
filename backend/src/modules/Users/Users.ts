@@ -141,6 +141,9 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
       email: decrypt(user.email),
       name: user.name,
     });
+    
+    console.log(token,'token')
+
     return {
       user,
       token,

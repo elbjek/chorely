@@ -6,11 +6,16 @@
 const tintColorLight = "#1E1A1D";
 const tintColorDark = "#f4f4f4";
 
-const darkNavy = '#11193e';
+const darkNavy = '#002642';
 const lightNavy = '#2a347a';
 const lightBrown ='#f1dba0';
 const darkBrown = '#b78c3e'
 const lightGray = '#f4f4f4';
+
+const yellowGreen ='#A6C954';
+const dunBrown = '#D0C8B3';
+const darkMossGreen = '#3D4D19';
+
 
 export const Colors = {
   light: {
@@ -24,7 +29,13 @@ export const Colors = {
     buttonText: lightGray,
     outlineText: darkNavy,
     borderLight: darkNavy,
-    backgroundBrown: darkBrown
+    solidButtonText: lightGray,
+    backgroundBrown: darkBrown,
+    colorLightGreen: yellowGreen,
+    colorDarkBrown: darkBrown,
+    colorLightBrown: dunBrown,
+    colorDarkGreen: darkMossGreen,
+    colorNavy: darkNavy,
   },
   dark: {
     text: "#f4f4f4",
@@ -37,6 +48,11 @@ export const Colors = {
     buttonText:darkNavy,
     borderDark: lightGray,
     outlineText: lightGray,
-    backgroundBrown: lightBrown
+    backgroundBrown: lightBrown,
+    colorLightGreen: yellowGreen,
+    colorDarkBrown: darkBrown,
+    colorLightBrown: dunBrown,
+    colorDarkGreen: darkMossGreen,
+    colorNavy: darkNavy,
   },
 };

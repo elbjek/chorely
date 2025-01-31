@@ -72,14 +72,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     overflow: 'hidden',
     fontWeight: 'bold',
-    width: 300,
     textAlign: 'center',
   },
   primary: {
-    // backgroundColor: '#2a347a',
+    // backgroundColor: Colors.light.colorNavy,
   },
   secondary: {
-    // backgroundColor: '#6c757d',
+    // backgroundColor: Colors.dark,
   },
   outline: {
     borderWidth: 1,

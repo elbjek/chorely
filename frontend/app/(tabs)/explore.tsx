@@ -6,7 +6,7 @@ import { ExternalLink } from '@/components/ExternalLink';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import withAuth from '../utils/withAuth';
+import withAuth from '../../lib/utils/withAuth';
 
 const TabTwoScreen = () => {
   return (

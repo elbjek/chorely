@@ -8,9 +8,9 @@ import { gql, useApolloClient, useQuery } from '@apollo/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useContext, useEffect } from 'react';
-import withAuth from '../utils/withAuth';
-import useLogout from '../utils/logout';
-import { GET_CURRENT_USER } from '@/app/queries/user-query';
+import withAuth from '@/lib/utils/withAuth';
+import useLogout from '@/lib/utils/logout';
+import { GET_CURRENT_USER } from '@/queries/user-query';
 
 const HomeScreen: React.FC = () => {
   const router = useRouter();

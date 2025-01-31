@@ -20,17 +20,40 @@ import {
   NormalizedCacheObject,
   useQuery,
 } from '@apollo/client';
-import { login } from './(auth)/sign-in';
-import { GET_CURRENT_USER } from './queries/user-query';
+import { GET_CURRENT_USER, LOGIN_MUTATION } from '../queries/user-query';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import ThemedButton from '@/components/ThemedButton';
 import { Colors } from '@/constants/Colors';
+import ThemedInput from '@/components/ThemedInput';
+
+export async function login(
+  client: ApolloClient<NormalizedCacheObject>,
+  email: string,
+  password: string,
+) {
+  const { data } = await client.mutate({
+    mutation: LOGIN_MUTATION,
+    variables: { email, password },
+  });
+
+  return data.login.token;
+}
+
+interface IIndexPageState {
+  email: string;
+  password: string;
+  error: string;
+}
+
 const IndexPage: React.FC = () => {
   const colorScheme = useColorScheme();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [{ email, password, error }, setState] = useState<IIndexPageState>({
+    email: '',
+    password: '',
+    error: '',
+  });
+
   const client = useApolloClient() as ApolloClient<NormalizedCacheObject>;
   const router = useRouter();
   const { data } = useQuery(GET_CURRENT_USER);
@@ -39,15 +62,16 @@ const IndexPage: React.FC = () => {
     try {
       const token = await login(client, email, password);
       await AsyncStorage.setItem('authToken', token);
-      // Navigate to the next screen or update the UI
-
       router.push('/(tabs)');
     } catch (err) {
       console.error(err);
-      setError('Login failed. Please check your credentials.');
+      setState((s) => ({
+        ...s,
+        error: 'Login failed. Please check your credentials.',
+      }));
     }
   };
-  console.log(data?.currentUser, 'curr usr from login');
+
   return (
     <SafeAreaProvider style={styles.bg}>
       <SafeAreaView>
@@ -55,11 +79,7 @@ const IndexPage: React.FC = () => {
           <ThemedView style={styles.container}>
             {/* HEADING */}
             <ThemedView style={styles.heading}>
-              <ThemedText
-                type="title"
-                style={styles.headingText}
-                className="text-center"
-              >
+              <ThemedText type="title" className="text-center">
                 Chorely
               </ThemedText>
               <ThemedText className="text-center font-semibold pb-3">
@@ -69,26 +89,21 @@ const IndexPage: React.FC = () => {
 
             {/* INPUT CONTAINERS */}
             <ThemedView style={styles.inputContainer}>
-              <TextInput
-                style={[
-                  styles.inputField,
-                  colorScheme === 'dark' ? styles.inputDark : styles.inputLight,
-                ]}
+              <ThemedInput
                 placeholder="Email"
-                value={email}
-                onChangeText={setEmail}
                 autoCapitalize="none"
+                onChangeText={(val) => {
+                  setState((s) => ({ ...s, email: val }));
+                }}
               />
-              <TextInput
-                style={[
-                  styles.inputField,
-                  colorScheme === 'dark' ? styles.inputDark : styles.inputLight,
-                ]}
+              <ThemedInput
                 placeholder="Password"
-                value={password}
-                onChangeText={setPassword}
+                onChangeText={(val) => {
+                  setState((s) => ({ ...s, password: val }));
+                }}
                 secureTextEntry
               />
+
               {/* ERRORS */}
               {error ? <Text style={styles.errorText}>{error}</Text> : null}
               {/* BUTTONS */}
@@ -96,7 +111,12 @@ const IndexPage: React.FC = () => {
                 <ThemedText style={{ fontSize: 13, fontWeight: 700 }}>
                   Forgot password?
                 </ThemedText>
-                <ThemedText style={{ fontSize: 13, fontWeight: 700 }}>
+                <ThemedText
+                  onPress={() => {
+                    router.push('/(auth)/sign-up');
+                  }}
+                  style={{ fontSize: 13, fontWeight: 700 }}
+                >
                   Sign Up
                 </ThemedText>
               </ThemedView>
@@ -144,9 +164,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     width: '100%',
   },
-  headingText: {
-    // textAlign: "center",
-  },
+
   bg: {
     backgroundColor: '#F4F3EE',
   },
@@ -155,17 +173,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     display: 'flex',
-    // backgroundColor: "#BCB8B1",
   },
   flex: {
     display: 'flex',
     alignItems: 'center',
-    // justifyContent: "space-around",
     overflow: 'hidden',
-    // flexDirection: "row",
   },
   inputContainer: {
     width: '100%',
+    paddingHorizontal: 20,
   },
   inputField: {
     height: 55,
@@ -188,34 +204,6 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
     paddingRight: 20,
     marginVertical: 10,
-  },
-  button: {
-    paddingHorizontal: 20,
-    paddingVertical: 15,
-    borderRadius: 5,
-    overflow: 'hidden',
-    color: '#463F3A',
-    fontWeight: 'bold',
-    width: 300,
-    textAlign: 'center',
-  },
-  buttonLight: {
-    backgroundColor: '#F4F3EE',
-  },
-  buttonOutline: {
-    borderColor: '#E0AFA0',
-    borderWidth: 1,
-    borderStyle: 'solid',
-  },
-  signIn: {
-    backgroundColor: '#E0AFA0',
-    marginTop: 20,
-    marginBottom: 20,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-  },
-  signUp: {
-    backgroundColor: '#BCB8B1',
   },
   headerImage: {
     color: '#808080',

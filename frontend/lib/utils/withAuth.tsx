@@ -2,7 +2,7 @@ import React, { useEffect, ComponentType } from 'react';
 import { useQuery } from '@apollo/client';
 // import { useNavigation } from "@react-navigation/native";
 import { useRouter } from 'expo-router';
-import { GET_CURRENT_USER } from '../queries/user-query';
+import { GET_CURRENT_USER } from '../../queries/user-query';
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 interface WithAuthProps {}
 

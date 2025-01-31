@@ -127,12 +127,14 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
     context: any
   ) => {
     const { email, password } = args as { email: string; password: string };
+    console.log(email, 'i happen?')
 
     const user = await this.prisma.user.findUnique({
       where: {
         email: encrypt(email),
       },
     });
+
     if (!user || !(await comparePassword(password, user.password))) {
       throw new Error("Invalid credentials");
     }
@@ -142,8 +144,6 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
       name: user.name,
     });
     
-    console.log(token,'token')
-
     return {
       user,
       token,

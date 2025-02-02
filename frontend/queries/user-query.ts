@@ -2,17 +2,24 @@
 import { gql } from "@apollo/client";
 
 export const GET_CURRENT_USER = gql`
-  query GetCurrentUser {
+query GetCurrentUser {
     currentUser {
-      id
-      name
       email
       households {
         id
-        name
-        householdInvitationURL
         isDefaultHousehold
         isSetup
+        name
+        householdInvitationURL
+      }
+      id
+      name
+      password
+      chores {
+        frequency
+        name
+        id
+        isCompleted
       }
     }
   }

@@ -3,6 +3,7 @@ import ThemedButton from '@/components/ThemedButton';
 import ThemedInput from '@/components/ThemedInput';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
+import { useUser } from '@/lib/utils/useUser';
 import { UPDATE_HOUSEHOLD } from '@/queries/household-query';
 import { GET_CURRENT_USER } from '@/queries/user-query';
 import { ApolloClient, NormalizedCacheObject, useQuery } from '@apollo/client';
@@ -20,31 +21,27 @@ export async function update(
     variables: { id, name },
   });
 
-  return data.updateHousehold;
+  return data;
 }
 
 const SetupHousehold: React.FC = () => {
-  const { loading, data } = useQuery(GET_CURRENT_USER, {
-    fetchPolicy: 'network-only',
-  });
+  const { currentUser } = useUser();
 
   useEffect(() => {
     const isHouseholdSetup =
-      data &&
-      data.currentUser &&
-      data.currentUser.households &&
-      data?.currentUser.households.find((x: any) => x.isSetup);
-    if (isHouseholdSetup) {
+      currentUser &&
+      currentUser.households &&
+      currentUser.households.find((x: any) => x.isDefaultHousehold);
+    if (isHouseholdSetup.isSetup) {
       router.replace('/(tabs)'); // Use replace() instead of push() to prevent going back
     }
-  }, [data?.currentUser]);
+  }, [currentUser]);
 
   const [{ name, error }, setState] = useState({
     name: '',
     error: '',
   });
   const updateHousehold = async () => {
-    const currentUser = data.currentUser;
     const activeHousehold = currentUser.households.find(
       (x: any) => x.isDefaultHousehold,
     );
@@ -67,7 +64,7 @@ const SetupHousehold: React.FC = () => {
       <ThemedText type="title">Finish setting up your household</ThemedText>
       <ThemedText
         onPress={() => {
-          router.back();
+          router.replace('/(tabs)');
         }}
       >
         back

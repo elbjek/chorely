@@ -16,6 +16,7 @@ import { ApolloProvider, useQuery } from '@apollo/client';
 import { client } from '@/ApolloClient';
 import { SafeAreaView, StatusBar, View } from 'react-native';
 import '@/global.css';
+import { UserProvider } from '@/lib/utils/useUser';
 // import { GET_CURRENT_USER } from "./(tabs)";
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -79,19 +80,27 @@ export default function RootLayout() {
 
   return (
     <ApolloProvider client={client}>
-      <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
-        {/* <MyStatusBar /> */}
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="setup-household"
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-      </ThemeProvider>
+      <UserProvider>
+        <ThemeProvider
+          value={colorScheme === 'light' ? DarkTheme : DefaultTheme}
+        >
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              animation: 'slide_from_right', // Set the animation type
+            }}
+          >
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="setup-household"
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </ThemeProvider>
+      </UserProvider>
     </ApolloProvider>
   );
 }

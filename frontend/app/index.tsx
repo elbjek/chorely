@@ -24,6 +24,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import ThemedButton from '@/components/ThemedButton';
 import { Colors } from '@/constants/Colors';
 import ThemedInput from '@/components/ThemedInput';
+import { useUser } from '@/lib/utils/useUser';
 
 export async function login(
   client: ApolloClient<NormalizedCacheObject>,
@@ -55,19 +56,20 @@ const IndexPage: React.FC = () => {
 
   const client = useApolloClient() as ApolloClient<NormalizedCacheObject>;
   const router = useRouter();
-  const { data } = useQuery(GET_CURRENT_USER);
+  // const { data } = useQuery(GET_CURRENT_USER);
+  const { currentUser } = useUser();
 
   useEffect(() => {
-    if (data?.currentUser) {
-      router.replace('/(tabs)'); // Use replace() instead of push() to prevent going back
+    if (currentUser && currentUser.households[0].isSetup) {
+      router.push('/(tabs)'); // Use replace() instead of push() to prevent going back
     }
-  }, [data?.currentUser]);
+  }, [currentUser]);
 
   const handleLogin = async () => {
     try {
       const token = await login(client, email, password);
       await AsyncStorage.setItem('authToken', token);
-      router.push('/(tabs)');
+      router.replace('/(tabs)');
     } catch (err) {
       console.error(err);
       setState((s) => ({

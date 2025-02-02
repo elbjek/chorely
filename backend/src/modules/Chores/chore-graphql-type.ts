@@ -3,14 +3,19 @@ import {
   GraphQLObjectType,
   GraphQLString,
   GraphQLList,
-} from "graphql";
-import { UserGraphQLType } from "../Users/user-graphql-type";
+  GraphQLBoolean,
+} from 'graphql';
+import { UserGraphQLType } from '../Users/user-graphql-type';
 
 export const ChoreGraphQLType = new GraphQLObjectType({
-  name: "Chore",
+  name: 'Chore',
   fields: {
     id: { type: GraphQLInt },
     name: { type: GraphQLString },
-    users: { type: new GraphQLList(UserGraphQLType) },
+    user: { type: UserGraphQLType },
+    point: { type: GraphQLInt },
+    description: { type: GraphQLString },
+    frequency: { type: GraphQLInt },
+    isCompleted: { type: GraphQLBoolean },
   },
 });

@@ -22,9 +22,10 @@ model User {
   image       String?
   householdId Int?
 
-  chores    Chore[]
-  points    Point[]
-  households  Household[] @relation("UserHouseholds")  // Many-to-many relationship
+  chores          Chore[]
+  points          Point[]
+  households      Household[] @relation("UserHouseholds") // Many-to-many relationship
+  completedChores Chore[]     @relation("CompletedChores")
 
   @@map("user")
 }
@@ -34,11 +35,14 @@ model Chore {
   name            String
   frequency       Int
   userId          Int
-  user            User             @relation(fields: [userId], references: [id])
-  isCompleted          Boolean      @map("is_completed") @default(false)
+  isCompleted     Boolean          @default(false) @map("is_completed")
   point           Int
   image           String?
+  completedById   Int?
+  description     String?
   householdChores HouseholdChore[]
+  user            User             @relation(fields: [userId], references: [id])
+  completedBy     User?            @relation("CompletedChores", fields: [completedById], references: [id])
 
   @@map("chore")
 }
@@ -50,7 +54,7 @@ model Household {
   isDefaultHousehold     Boolean          @default(false)
   isSetup                Boolean          @default(false)
   householdChores        HouseholdChore[]
-  users                  User[]     @relation("UserHouseholds")  // Many-to-many relationship
+  users                  User[]           @relation("UserHouseholds")
 
   @@map("household")
 }
@@ -58,8 +62,8 @@ model Household {
 model HouseholdChore {
   householdId Int
   choreId     Int
-  household   Household @relation(fields: [householdId], references: [id])
-  chore       Chore     @relation(fields: [choreId], references: [id])
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  chore       Chore     @relation(fields: [choreId], references: [id], onDelete: Cascade)
 
   @@id([householdId, choreId])
   @@map("household_chore")

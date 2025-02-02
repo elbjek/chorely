@@ -4,12 +4,12 @@ import {
   GraphQLList,
   GraphQLNonNull,
   GraphQLString,
-} from "graphql";
-import { UserGraphQLType, LoginResponseType } from "./user-graphql-type"; // Adjust the import path as necessary
-import { IQueryFieldCollection } from "../../IQueryFieldCollection";
-import prisma from "../../prismaClient";
-import { IGraphQLDefaultArgs } from "../../common-types/IGraphQLDefaultArgs";
-import { v4 as uuid } from 'uuid'
+} from 'graphql';
+import { UserGraphQLType, LoginResponseType } from './user-graphql-type'; // Adjust the import path as necessary
+import { IQueryFieldCollection } from '../../IQueryFieldCollection';
+import prisma from '../../prismaClient';
+import { IGraphQLDefaultArgs } from '../../common-types/IGraphQLDefaultArgs';
+import { v4 as uuid } from 'uuid';
 import {
   comparePassword,
   decrypt,
@@ -17,7 +17,7 @@ import {
   generateToken,
   hashPassword,
   verifyToken,
-} from "../../auth";
+} from '../../auth';
 export interface User {
   id: number;
   email: string;
@@ -38,17 +38,21 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
    * @memberof Users
    */
   private fetchUsers = async (): Promise<User[]> => {
-    const users = await this.prisma.user.findMany();
+    const users = await this.prisma.user.findMany({
+      include: {
+        households: true,
+      },
+    });
     return users;
   };
 
   private usersResolver = async (
     _source: unknown,
     args: IGraphQLDefaultArgs,
-    context: any
+    context: any,
   ) => {
     if (!context.currentUser) {
-      throw new Error("Not authenticated");
+      // throw new Error("Not authenticated");
     }
     const users = await this.fetchUsers();
 
@@ -64,7 +68,7 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
   private createUserMutationResolver = async (
     _source: unknown,
     args: IGraphQLDefaultArgs,
-    context: any
+    context: any,
   ) => {
     const { email, password, name } = args as {
       email: string;
@@ -75,14 +79,14 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
       where: { email: encrypt(email) },
     });
     if (existing) {
-      throw new Error("User already exists");
+      throw new Error('User already exists');
     }
 
     try {
       // Create a new user if one does not already exist
       const hashedPassword = await hashPassword(password);
       const hashedEmail = await encrypt(email);
-      const uniqueLink = uuid()
+      const uniqueLink = uuid();
 
       const user = await this.prisma.user.create({
         data: {
@@ -94,14 +98,54 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
               name: `${name ?? 'Unnamed'} Household`,
               householdInvitationURL: uniqueLink,
               isDefaultHousehold: true,
-              isSetup:false
-            }
-          }
+              isSetup: false,
+            },
+          },
         },
         include: {
-          households: true
-        }
+          households: true,
+          chores: true,
+        },
       });
+
+      const household = user.households[0]; // Get the created household
+
+      if (!household) {
+        throw new Error('Household creation failed');
+      }
+
+      const defaultChores = [
+        { name: 'Take out trash', frequency: 7, point: 10 },
+        { name: 'Wash dishes', frequency: 1, point: 5 },
+        { name: 'Vacuum living room', frequency: 3, point: 8 },
+        { name: 'Clean bathroom', frequency: 7, point: 12 },
+        { name: 'Do laundry', frequency: 7, point: 7 },
+        { name: 'Mop the floor', frequency: 3, point: 9 },
+        { name: 'Water plants', frequency: 4, point: 4 },
+        { name: 'Wipe windows', frequency: 14, point: 6 },
+        { name: 'Dust furniture', frequency: 7, point: 5 },
+        { name: 'Organize shelves', frequency: 14, point: 8 },
+      ];
+
+      const createdChores = await Promise.all(
+        defaultChores.map((chore) =>
+          prisma.chore.create({
+            data: {
+              ...chore,
+              userId: user.id,
+            },
+          }),
+        ),
+      );
+
+      // Link created chores to the household
+      await prisma.householdChore.createMany({
+        data: createdChores.map((chore) => ({
+          householdId: household.id,
+          choreId: chore.id,
+        })),
+      });
+
       return {
         ...user,
         email: decrypt(user.email),
@@ -114,10 +158,10 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
   private userResolver = async (
     _source: unknown,
     args: IGraphQLDefaultArgs,
-    context: any
+    context: any,
   ) => {
     if (!context.currentUser) {
-      throw new Error("Not authenticated");
+      throw new Error('Not authenticated');
     }
 
     const { id } = args as { id: number };
@@ -138,7 +182,7 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
   private loginResolver = async (
     _source: unknown,
     args: IGraphQLDefaultArgs,
-    context: any
+    context: any,
   ) => {
     const { email, password } = args as { email: string; password: string };
 
@@ -147,12 +191,12 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
         email: encrypt(email),
       },
       include: {
-        households: true
-      }
+        households: true,
+      },
     });
 
     if (!user || !(await comparePassword(password, user.password))) {
-      throw new Error("Invalid credentials");
+      throw new Error('Invalid credentials');
     }
     const token = generateToken({
       id: user.id,
@@ -168,20 +212,24 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
   private currentUserResolver = async (
     _source: unknown,
     args: IGraphQLDefaultArgs,
-    context: any
+    context: any,
   ) => {
     if (!context.currentUser) {
-      throw new Error("Not authenticated");
+      throw new Error('Not authenticated');
     }
     const user = await this.prisma.user.findUnique({
       where: {
-        id: context.currentUser.id
+        id: context.currentUser.id,
       },
       include: {
-        households:true
-      }
-    })
-    return user;
+        households: true,
+        chores: true,
+      },
+    });
+    return {
+      ...user,
+      email: decrypt(user.email),
+    };
   };
 
   queryFields: GraphQLFieldConfigMap<unknown, unknown> = {

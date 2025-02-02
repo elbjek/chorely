@@ -9,14 +9,20 @@ import {
   Dimensions,
   useColorScheme,
 } from 'react-native';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { gql, useApolloClient, useQuery } from '@apollo/client';
+import {
+  ApolloClient,
+  gql,
+  NormalizedCacheObject,
+  useApolloClient,
+  useQuery,
+} from '@apollo/client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { useContext, useEffect } from 'react';
 import withAuth from '@/lib/utils/withAuth';
 import useLogout from '@/lib/utils/logout';
@@ -25,32 +31,83 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Colors } from '@/constants/Colors';
 import ThemedButton from '@/components/ThemedButton';
+import Chore from '@/lib/utils/types/Chore';
+import Household from '@/lib/utils/types/Household';
+import { useUser } from '@/lib/utils/useUser';
+import { GET_CHORES_FOR_USER, REMOVE_CHORE } from '@/queries/chore-query';
+import { client } from '@/ApolloClient';
+
+interface IHomeScreenProps {
+  chores: Chore[];
+}
+
+export async function removeSelectedChore(
+  client: ApolloClient<NormalizedCacheObject>,
+  id: number,
+) {
+  const { data } = await client.mutate({
+    mutation: REMOVE_CHORE,
+    variables: { id },
+  });
+
+  return data;
+}
+
+export const getGreeting = () => {
+  const currentHour = new Date().getHours();
+  if (currentHour < 12) {
+    return 'Good morning';
+  } else if (currentHour < 18) {
+    return 'Hello';
+  } else {
+    return 'Good evening';
+  }
+};
+
 const HomeScreen: React.FC = () => {
+  const { data, refetch } = useQuery(GET_CHORES_FOR_USER, {
+    fetchPolicy: 'network-only',
+  });
+  const { currentUser, loading, error } = useUser();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, []),
+  );
+
   const router = useRouter();
+  const [{ chores }, setState] = useState<IHomeScreenProps>({
+    chores: [],
+  });
+
+  useEffect(() => {
+    if (data && data.chores) {
+      setState((s) => ({ ...s, chores: data.chores }));
+      console.log(chores);
+    }
+  }, [data]);
+
   const theme = useColorScheme() ?? 'light';
 
-  const getGreeting = () => {
-    const currentHour = new Date().getHours();
-    if (currentHour < 12) {
-      return 'Good morning';
-    } else if (currentHour < 18) {
-      return 'Hello';
-    } else {
-      return 'Good evening';
+  const logout = useLogout();
+
+  const handleDeleteChore = async (id: number) => {
+    try {
+      await removeSelectedChore(client, id);
+      setState((prevState) => ({
+        ...prevState,
+        chores: prevState.chores.filter((chore) => chore.id !== id),
+      }));
+    } catch (error) {
+      console.error('Error deleting chore:', error);
     }
   };
 
-  // const logout = useLogout();
-  const { loading, error, data } = useQuery(GET_CURRENT_USER, {
-    fetchPolicy: 'network-only',
-  });
-
   if (loading) return <ThemedText>Loading...</ThemedText>;
-
-  // if (error) {
-  //   // console.error("Error fetching data:", error);
-  //   return <ThemedText>Error loading data</ThemedText>;
-  // }
+  if (error) {
+    return <ThemedText>Error loading data</ThemedText>;
+  }
   const greeting = getGreeting();
   return (
     <SafeAreaProvider>
@@ -77,10 +134,10 @@ const HomeScreen: React.FC = () => {
               <ThemedText type="default">
                 {greeting}{' '}
                 <ThemedText style={{ textTransform: 'capitalize' }}>
-                  {data?.currentUser.name ?? 'Unknown'}
+                  {currentUser.name ?? 'Unknown'}
                 </ThemedText>
-                {/* Welcome {data?.currentUser?.name ?? 'No name'}! */}
               </ThemedText>
+
               <ThemedText
                 style={[
                   styles.icon,
@@ -102,13 +159,15 @@ const HomeScreen: React.FC = () => {
               </ThemedText>
             </ThemedView>
 
-            <ThemedButton
-              title="Add new Chore"
-              style={{ marginVertical: 10, marginHorizontal: 10 }}
-            />
-            {/* <ThemedText>
-              This is the {data.currentUser.households[0].name}
+            <ThemedText type="title" style={{ textTransform: 'capitalize' }}>
+              {
+                currentUser.households.find(
+                  (household: Household) => household.isDefaultHousehold,
+                ).name
+              }{' '}
+              Household
             </ThemedText>
+
             <ThemedText
               onPress={() => {
                 logout();
@@ -116,13 +175,31 @@ const HomeScreen: React.FC = () => {
             >
               Logout
             </ThemedText>
-            <ThemedText
-              onPress={() => {
-                router.push('/setup-household');
-              }}
-            >
-              Household
-            </ThemedText> */}
+
+            {chores &&
+              chores.map((chore: Chore) => (
+                <ThemedText
+                  key={chore.id}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <ThemedText>Name: {chore.name}</ThemedText>
+                  <ThemedText
+                    onPress={() => {
+                      handleDeleteChore(chore.id);
+                    }}
+                  >
+                    {' '}
+                    Delete{' '}
+                  </ThemedText>
+                  <ThemedText>Difficulty{chore.point}</ThemedText>
+                </ThemedText>
+              ))}
           </ThemedView>
         </ScrollView>
       </SafeAreaView>
@@ -134,19 +211,14 @@ const styles = StyleSheet.create({
   container: {
     display: 'flex',
     flexDirection: 'column',
-    // alignItems: 'center',
-    // justifyContent: 'center',
     minHeight: Dimensions.get('window').height,
   },
   headingContainer: {
-    // paddingVertical: 20,
     padding: 10,
     display: 'flex',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    // borderWidth: 1,
-    // borderStyle: 'solid',
   },
   icon: {
     paddingHorizontal: 10,
@@ -160,22 +232,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#ffffff',
     marginVertical: 4,
-  },
-  // titleContainer: {
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  //   gap: 8,
-  // },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
   },
 });
 

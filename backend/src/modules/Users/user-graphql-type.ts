@@ -8,6 +8,31 @@ export const UserGraphQLType = new GraphQLObjectType({
     name: { type: GraphQLString },
     email: { type: GraphQLString },
     password: { type: GraphQLString },
+    chores: {
+      type: new GraphQLList(
+        new GraphQLObjectType({
+          name: 'userChores',
+          fields: {
+            id: { type: GraphQLInt },
+            name: { type: GraphQLString },
+            frequency: { type: GraphQLInt },
+            isCompleted: { type: GraphQLBoolean },
+            point: { type: GraphQLInt },
+            householdChores: {
+              type: new GraphQLList(
+                new GraphQLObjectType({
+                  name: 'userHouseholdChores',
+                  fields: {
+                    householdId: { type: GraphQLInt },
+                    choreId: { type: GraphQLInt }
+                  }
+                })
+              )
+            }
+          }
+        })
+      )
+    },
     households: {
       type: new GraphQLList(
         new GraphQLObjectType({

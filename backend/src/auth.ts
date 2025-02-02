@@ -22,7 +22,7 @@ export const generateToken = (user: {
   email: string;
   name?: string;
 }) => {
-  return jwt.sign(user, SECRET_KEY, { expiresIn: "1h" });
+  return jwt.sign(user, SECRET_KEY, { expiresIn: "4h" });
 };
 
 export const verifyToken = (token: string) => {
@@ -31,6 +31,7 @@ export const verifyToken = (token: string) => {
       throw new Error("Invalid token format");
     }
     const tokenValue = token.split(" ")[1]; // Extract actual token
+    console.log(tokenValue)
     const decoded = jwt.verify(tokenValue, SECRET_KEY);
     return decoded;
   } catch (error) {

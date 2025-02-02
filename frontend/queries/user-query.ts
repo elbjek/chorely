@@ -7,6 +7,13 @@ export const GET_CURRENT_USER = gql`
       id
       name
       email
+      households {
+        id
+        name
+        householdInvitationURL
+        isDefaultHousehold
+        isSetup
+      }
     }
   }
 `;

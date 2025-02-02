@@ -3,18 +3,14 @@ import {
   GraphQLObjectType,
   GraphQLString,
   GraphQLList,
-  GraphQLBoolean,
 } from "graphql";
 import { UserGraphQLType } from "../Users/user-graphql-type";
 
-export const HouseholdGraphQLType = new GraphQLObjectType({
-  name: "Household",
+export const ChoreGraphQLType = new GraphQLObjectType({
+  name: "Chore",
   fields: {
     id: { type: GraphQLInt },
     name: { type: GraphQLString },
     users: { type: new GraphQLList(UserGraphQLType) },
-    householdInvitationURL: { type: GraphQLString },
-    isSetup: { type: GraphQLBoolean },
-    isDefaultHousehold: { type: GraphQLBoolean },
   },
 });

@@ -1,4 +1,4 @@
-import { GraphQLInt, GraphQLObjectType, GraphQLString } from "graphql";
+import { GraphQLBoolean, GraphQLInt, GraphQLList, GraphQLObjectType, GraphQLString } from "graphql";
 import { Household } from "../Households/Household";
 
 export const UserGraphQLType = new GraphQLObjectType({
@@ -8,14 +8,19 @@ export const UserGraphQLType = new GraphQLObjectType({
     name: { type: GraphQLString },
     email: { type: GraphQLString },
     password: { type: GraphQLString },
-    household: {
-      type: new GraphQLObjectType({
-        name: "UserHousehold",
-        fields: {
-          id: { type: GraphQLInt },
-          name: { type: GraphQLString },
-        },
-      }),
+    households: {
+      type: new GraphQLList(
+        new GraphQLObjectType({
+          name: "UserHouseholds",
+          fields: {
+            id: { type: GraphQLInt },
+            name: { type: GraphQLString },
+            householdInvitationURL: { type: GraphQLString },  // Add URL if needed
+            isSetup: { type: GraphQLBoolean },
+            isDefaultHousehold: { type: GraphQLBoolean },
+          },
+        })
+      ),
     },
   },
 });

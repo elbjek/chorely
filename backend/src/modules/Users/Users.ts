@@ -9,6 +9,7 @@ import { UserGraphQLType, LoginResponseType } from "./user-graphql-type"; // Adj
 import { IQueryFieldCollection } from "../../IQueryFieldCollection";
 import prisma from "../../prismaClient";
 import { IGraphQLDefaultArgs } from "../../common-types/IGraphQLDefaultArgs";
+import { v4 as uuid } from 'uuid'
 import {
   comparePassword,
   decrypt,
@@ -81,12 +82,25 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
       // Create a new user if one does not already exist
       const hashedPassword = await hashPassword(password);
       const hashedEmail = await encrypt(email);
+      const uniqueLink = uuid()
+
       const user = await this.prisma.user.create({
         data: {
           email: hashedEmail,
           name,
           password: hashedPassword,
+          households: {
+            create: {
+              name: `${name ?? 'Unnamed'} Household`,
+              householdInvitationURL: uniqueLink,
+              isDefaultHousehold: true,
+              isSetup:false
+            }
+          }
         },
+        include: {
+          households: true
+        }
       });
       return {
         ...user,
@@ -112,7 +126,7 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
         id: id,
       },
       include: {
-        household: true,
+        households: true,
       },
     });
     return {
@@ -127,12 +141,14 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
     context: any
   ) => {
     const { email, password } = args as { email: string; password: string };
-    console.log(email, 'i happen?')
 
     const user = await this.prisma.user.findUnique({
       where: {
         email: encrypt(email),
       },
+      include: {
+        households: true
+      }
     });
 
     if (!user || !(await comparePassword(password, user.password))) {
@@ -143,7 +159,6 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
       email: decrypt(user.email),
       name: user.name,
     });
-    
     return {
       user,
       token,
@@ -158,7 +173,15 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
     if (!context.currentUser) {
       throw new Error("Not authenticated");
     }
-    return context.currentUser;
+    const user = await this.prisma.user.findUnique({
+      where: {
+        id: context.currentUser.id
+      },
+      include: {
+        households:true
+      }
+    })
+    return user;
   };
 
   queryFields: GraphQLFieldConfigMap<unknown, unknown> = {

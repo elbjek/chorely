@@ -20,6 +20,35 @@ export class Household implements IQueryFieldCollection<unknown, unknown> {
     return households;
   };
 
+  private updateHouseholdResolver = async (_source: unknown, args: { id: number, name: string }, context: any) => {
+    if (!context.currentUser) {
+      throw new Error('Not authorized');
+    }
+    const { id, name } = args
+
+    const existingHousehold = await this.prisma.household.findFirst({
+      where: {
+        name: name, // Ensure we're looking at the household with the provided ID
+        users: {
+          some: { id: context.currentUser.id }, // Ensure the current user is associated with this household
+        },
+      },
+    });
+    if (existingHousehold) {
+      throw new Error('You already have a household with that name.')
+    }
+    const household = await this.prisma.household.update({
+      where: {
+        id: id
+      },
+      data: {
+        name: name,
+        isSetup: true
+      }
+    })
+    return household
+  }
+
   private createHouseholdResolver = async (
     _source: unknown,
     args: { userId: number; name: string },
@@ -97,6 +126,14 @@ export class Household implements IQueryFieldCollection<unknown, unknown> {
         name: { type: new GraphQLNonNull(GraphQLString) },
       },
       resolve: this.createHouseholdResolver,
+    },
+    updateHousehold: {
+      type: HouseholdGraphQLType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLInt) },
+        name: { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve: this.updateHouseholdResolver,
     },
   };
 }

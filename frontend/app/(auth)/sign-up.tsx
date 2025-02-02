@@ -72,7 +72,6 @@ const SignUp: React.FC = () => {
       return;
     }
     if (password !== passwordConfirm) {
-      console.log(password, passwordConfirm, 'aa');
       setState((s) => ({ ...s, error: 'Passwords do not match.' }));
       return;
     }
@@ -85,13 +84,12 @@ const SignUp: React.FC = () => {
       if (tryRegister.createUser) {
         const token = await login(client, email, password);
         await AsyncStorage.setItem('authToken', token);
-        router.push('/(tabs)');
+        router.push('/setup-household');
       }
       // const createUser =
       // const token = await login(client, email, password)
       // create an account (await register)
       // strt a session await login
-      console.log(tryRegister);
       setState((s) => ({ ...s, error: '' }));
     } catch (err) {
       setState((s) => ({ ...s, error: (err as any).message }));
@@ -123,20 +121,19 @@ const SignUp: React.FC = () => {
       />
       <ThemedInput
         placeholder="Password"
-        // secureTextEntry
+        secureTextEntry
         onChangeText={(val) => {
           setState((s) => ({ ...s, password: val }));
         }}
       />
       <ThemedInput
         placeholder="Confirm password"
-        // secureTextEntry
+        secureTextEntry
         onChangeText={(val) => {
-          console.log(val);
           setState((s) => ({
             ...s,
             passwordConfirm: val,
-            // error: s.password !== val ? 'Passwords are not identical' : '',
+            error: s.password !== val ? 'Passwords are not identical' : '',
           }));
         }}
       />

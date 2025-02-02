@@ -24,7 +24,7 @@ model User {
 
   chores    Chore[]
   points    Point[]
-  household Household? @relation(fields: [householdId], references: [id])
+  households  Household[] @relation("UserHouseholds")  // Many-to-many relationship
 
   @@map("user")
 }
@@ -35,6 +35,7 @@ model Chore {
   frequency       Int
   userId          Int
   user            User             @relation(fields: [userId], references: [id])
+  isCompleted          Boolean      @map("is_completed") @default(false)
   point           Int
   image           String?
   householdChores HouseholdChore[]
@@ -46,8 +47,10 @@ model Household {
   id                     Int              @id @default(autoincrement())
   name                   String
   householdInvitationURL String?
+  isDefaultHousehold     Boolean          @default(false)
+  isSetup                Boolean          @default(false)
   householdChores        HouseholdChore[]
-  users                  User[]
+  users                  User[]     @relation("UserHouseholds")  // Many-to-many relationship
 
   @@map("household")
 }

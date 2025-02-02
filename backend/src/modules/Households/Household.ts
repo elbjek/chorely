@@ -3,11 +3,11 @@ import {
   GraphQLInt,
   GraphQLNonNull,
   GraphQLString,
-} from "graphql";
-import { IQueryFieldCollection } from "../../IQueryFieldCollection";
-import prisma from "../../prismaClient";
-import { IGraphQLDefaultArgs } from "../../common-types/IGraphQLDefaultArgs";
-import { HouseholdGraphQLType } from "./household-graphql-type";
+} from 'graphql';
+import { IQueryFieldCollection } from '../../IQueryFieldCollection';
+import prisma from '../../prismaClient';
+import { IGraphQLDefaultArgs } from '../../common-types/IGraphQLDefaultArgs';
+import { HouseholdGraphQLType } from './household-graphql-type';
 export class Household implements IQueryFieldCollection<unknown, unknown> {
   private readonly prisma: any;
 
@@ -20,18 +20,54 @@ export class Household implements IQueryFieldCollection<unknown, unknown> {
     return households;
   };
 
+  private updateHouseholdResolver = async (
+    _source: unknown,
+    args: { id: number; name: string },
+    context: any,
+  ) => {
+    if (!context.currentUser) {
+      throw new Error('Not authorized');
+    }
+    const { id, name } = args;
+
+    const existingHousehold = await this.prisma.household.findFirst({
+      where: {
+        name: name, // Ensure we're looking at the household with the provided ID
+        users: {
+          some: { id: context.currentUser.id }, // Ensure the current user is associated with this household
+        },
+      },
+    });
+    if (existingHousehold) {
+      throw new Error('You already have a household with that name.');
+    }
+    const household = await this.prisma.household.update({
+      where: {
+        id: id,
+      },
+      data: {
+        name: name,
+        isSetup: true,
+      },
+    });
+    return household;
+  };
+
   private createHouseholdResolver = async (
     _source: unknown,
     args: { userId: number; name: string },
-    context: any
+    context: any,
   ) => {
+    if (!context.currentUser) {
+      throw new Error('Not authenticated');
+    }
     const { userId, name } = args;
     const household = await this.prisma.household.create({
       data: {
         name,
         users: {
           connect: {
-            id: userId,
+            id: context.currentUser.id,
           },
         },
       },
@@ -39,17 +75,25 @@ export class Household implements IQueryFieldCollection<unknown, unknown> {
     return household;
   };
 
+  private removeHousehold = () => {
+    // dont forget to remove all chores with this ID
+  };
+
   private householdByUserResolver = async (
     _source: unknown,
     args: { userId: number },
-    context: any
+    context: any,
   ) => {
+    if (!context.currentUser) {
+      throw new Error('Not authenticated');
+    }
+
     const { userId } = args;
     const household = await this.prisma.household.findFirst({
       where: {
         users: {
           some: {
-            id: userId,
+            id: Number(context.currentUser.id),
           },
         },
       },
@@ -63,7 +107,7 @@ export class Household implements IQueryFieldCollection<unknown, unknown> {
   private householdResolver = async (
     _source: unknown,
     args: IGraphQLDefaultArgs,
-    context: any
+    context: any,
   ) => {
     const { id } = args as { id: number };
     const household = await this.prisma.household.findUnique({
@@ -90,6 +134,14 @@ export class Household implements IQueryFieldCollection<unknown, unknown> {
         name: { type: new GraphQLNonNull(GraphQLString) },
       },
       resolve: this.createHouseholdResolver,
+    },
+    updateHousehold: {
+      type: HouseholdGraphQLType,
+      args: {
+        id: { type: new GraphQLNonNull(GraphQLInt) },
+        name: { type: new GraphQLNonNull(GraphQLString) },
+      },
+      resolve: this.updateHouseholdResolver,
     },
   };
 }

@@ -2,14 +2,17 @@ import { GraphQLSchema } from "graphql";
 import { Users } from "../modules/Users/Users";
 import { SchemaBuilder } from "./schemaBuilder";
 import { Household } from "../modules/Households/Household";
+import { Chore } from "../modules/Chores/Chore";
 
 // Instantiate the SchemaBuilder
 const schemaBuilder = new SchemaBuilder();
 
 // Add query and mutation fields from various modules
 const users = new Users();
+const chores = new Chore();
 const households = new Household();
 schemaBuilder.addQueryFieldCollection(users);
+schemaBuilder.addQueryFieldCollection(chores);
 schemaBuilder.addQueryFieldCollection(households);
 
 // Build the schema

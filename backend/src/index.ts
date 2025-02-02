@@ -1,56 +1,32 @@
-import { ApolloServer, gql } from "apollo-server";
-import { PrismaClient } from "@prisma/client";
+import { ApolloServer } from "apollo-server";
 import dotenv from "dotenv";
 import schema from "./schema/schema";
+import { verifyToken } from "./auth";
 dotenv.config();
-
-// // GraphQL schema
-// const typeDefs = gql`
-//   type User {
-//     id: ID!
-//     email: String!
-//     name: String
-//   }
-
-//   type Query {
-//     users: [User]
-//   }
-
-//   type Mutation {
-//     createUser(email: String!, name: String): User
-//   }
-// `;
-
-// // GraphQL resolvers
-// const resolvers = {
-//   Query: {
-//     users: async () => {
-//       const users = await prisma.user.findMany();
-//       console.log(users);
-//       return users;
-//     },
-//   },
-//   Mutation: {
-//     createUser: async (
-//       _: unknown,
-//       { email, name }: { email: string; name?: string }
-//     ) => {
-//       return prisma.user.create({
-//         data: {
-//           email,
-//           name,
-//         },
-//       });
-//     },
-//   },
-// };
 
 // Create Apollo Server
 const server = new ApolloServer({
   schema,
   cors: {
     origin: "*", // Allow all origins
+    credentials: true,
   },
+  context: async ({ req }) => {
+    
+    const authToken = req.headers.authorization;
+    let currentUser = null;
+  
+    if (authToken) {
+      try {
+        currentUser = verifyToken(authToken);
+        return { currentUser };
+      } catch (error) {
+        console.error("Error verifying token:", error);
+      }
+    }
+  
+    return {};
+  }
 });
 
 // Start the server

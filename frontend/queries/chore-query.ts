@@ -6,23 +6,16 @@ export const CREATE_CHORE_MUTATION = gql`
     $householdId: Int!
     $points: Int!
     $description: String
+    $categoryId: Int!
   ) {
     createChore(
       name: $name
       householdId: $householdId
       points: $points
       description: $description
+      categoryId: $categoryId
     ) {
-      description
-      frequency
       id
-      isCompleted
-      name
-      user {
-        name
-        id
-      }
-      point
     }
   }
 `;

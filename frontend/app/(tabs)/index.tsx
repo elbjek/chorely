@@ -125,7 +125,7 @@ const HomeScreen: React.FC = () => {
 
   const groupedChores = chores.reduce(
     (acc, chore) => {
-      const categoryName = chore.category.name;
+      const categoryName = chore.category ? chore.category.name : '';
       if (!acc[categoryName]) {
         acc[categoryName] = [];
       }
@@ -237,7 +237,7 @@ const HomeScreen: React.FC = () => {
             >
               Logout
             </ThemedText>
-            <Categories sections={sections} />
+            {sections && <Categories sections={sections} />}
           </ThemedView>
         </ScrollView>
       </SafeAreaView>

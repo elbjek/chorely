@@ -16,9 +16,11 @@ const Categories: React.FC<ICategoriesProps> = ({ sections }) => {
       <ThemedView style={styles.sectionContainer}>
         {sections.map((section: any) => {
           return (
-            <ThemedView key={section.title} style={styles.sectionTitle}>
-              <ThemedText>{section.title}</ThemedText>
-            </ThemedView>
+            section.title && (
+              <ThemedView key={section.title} style={styles.sectionTitle}>
+                <ThemedText>{section.title}</ThemedText>
+              </ThemedView>
+            )
           );
         })}
       </ThemedView>

@@ -95,6 +95,10 @@ export default function RootLayout() {
               name="setup-household"
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="single-category"
+              options={{ headerShown: false }}
+            />
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />

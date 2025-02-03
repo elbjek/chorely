@@ -2,14 +2,18 @@ import Chore from '@/lib/utils/types/Chore';
 import React from 'react';
 import { ThemedView } from './ThemedView';
 import { ThemedText } from './ThemedText';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 interface ICategoriesProps {
   sections: {
     title: string;
     data: Chore[];
   }[];
+  onCategoryPress: (categoryId: number) => void;
 }
-const Categories: React.FC<ICategoriesProps> = ({ sections }) => {
+const Categories: React.FC<ICategoriesProps> = ({
+  sections,
+  onCategoryPress,
+}) => {
   return (
     <ThemedView>
       <ThemedText type="subtitle">All Categories</ThemedText>
@@ -17,9 +21,15 @@ const Categories: React.FC<ICategoriesProps> = ({ sections }) => {
         {sections.map((section: any) => {
           return (
             section.title && (
-              <ThemedView key={section.title} style={styles.sectionTitle}>
+              <TouchableOpacity
+                key={section.title}
+                style={styles.sectionTitle}
+                onPress={() => {
+                  onCategoryPress(section.data[0].category.id);
+                }}
+              >
                 <ThemedText>{section.title}</ThemedText>
-              </ThemedView>
+              </TouchableOpacity>
             )
           );
         })}

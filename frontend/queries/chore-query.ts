@@ -48,3 +48,19 @@ export const REMOVE_CHORE = gql`
     }
   }
 `;
+
+export const GET_CHORES_BY_CATEGORY = gql`
+  query Chores($categoryId: Int, $userId: Int) {
+    choresByCategory(categoryId: $categoryId, userId: $userId) {
+      isCompleted
+      id
+      frequency
+      name
+      point
+      description
+      category {
+        name
+      }
+    }
+  }
+`;

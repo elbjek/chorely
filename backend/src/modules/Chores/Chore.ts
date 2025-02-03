@@ -67,16 +67,44 @@ export class Chore implements IQueryFieldCollection<unknown, unknown> {
     return chore;
   };
 
+  private chorePerCategoryResolver = async (
+    _source: unknown,
+    args: IGraphQLDefaultArgs,
+    context: any,
+  ) => {
+    const { currentUser } = context;
+    const { categoryId, userId } = args as {
+      categoryId: number;
+      userId: number;
+    };
+    if (!currentUser) {
+      throw new Error('Not authorized!');
+    }
+
+    const chores = await this.prisma.chore.findMany({
+      where: {
+        categoryId: categoryId,
+        userId: userId, // Filter by currentUser
+      },
+      include: {
+        user: true,
+        category: true,
+      },
+    });
+    return chores;
+  };
+
   private createChores = async (
     _source: unknown,
     args: IGraphQLDefaultArgs,
     context: any,
   ) => {
-    const { name, points, description, householdId } = args as {
+    const { name, points, description, householdId, categoryId } = args as {
       name: string;
       points: number;
       description: string;
       householdId: number;
+      categoryId: number;
     };
     const { currentUser } = context;
 
@@ -112,6 +140,7 @@ export class Chore implements IQueryFieldCollection<unknown, unknown> {
             householdId: householdId,
           },
         },
+        categoryId: categoryId,
       },
     });
     return chore;
@@ -122,6 +151,14 @@ export class Chore implements IQueryFieldCollection<unknown, unknown> {
       type: new GraphQLNonNull(new GraphQLList(ChoreGraphQLType)),
       resolve: this.choresResolver,
     },
+    choresByCategory: {
+      type: new GraphQLNonNull(new GraphQLList(ChoreGraphQLType)),
+      args: {
+        categoryId: { type: GraphQLInt },
+        userId: { type: GraphQLInt },
+      },
+      resolve: this.chorePerCategoryResolver,
+    },
   };
   mutationFields?: GraphQLFieldConfigMap<unknown, unknown> | undefined = {
     createChore: {
@@ -131,6 +168,7 @@ export class Chore implements IQueryFieldCollection<unknown, unknown> {
         description: { type: GraphQLString },
         householdId: { type: new GraphQLNonNull(GraphQLInt) },
         points: { type: new GraphQLNonNull(GraphQLInt) },
+        categoryId: { type: GraphQLInt },
       },
       resolve: this.createChores,
     },

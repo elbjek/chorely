@@ -47,18 +47,6 @@ interface IHomeScreenProps {
   chores: Chore[];
 }
 
-export async function removeSelectedChore(
-  client: ApolloClient<NormalizedCacheObject>,
-  id: number,
-) {
-  const { data } = await client.mutate({
-    mutation: REMOVE_CHORE,
-    variables: { id },
-  });
-
-  return data;
-}
-
 export const getGreeting = () => {
   const currentHour = new Date().getHours();
   if (currentHour < 12) {
@@ -99,30 +87,6 @@ const HomeScreen: React.FC = () => {
 
   const logout = useLogout();
 
-  const handleDeleteChore = async (id: number) => {
-    setChoreToDelete(id);
-    setIsModalVisible(true);
-  };
-
-  const confirmDeleteChore = async () => {
-    if (choreToDelete !== null) {
-      try {
-        await removeSelectedChore(client, choreToDelete);
-        setState((prevState) => ({
-          ...prevState,
-          chores: prevState.chores.filter(
-            (chore) => chore.id !== choreToDelete,
-          ),
-        }));
-      } catch (error) {
-        console.error('Error deleting chore:', error);
-      } finally {
-        setIsModalVisible(false);
-        setChoreToDelete(null);
-      }
-    }
-  };
-
   const groupedChores = chores.reduce(
     (acc, chore) => {
       const categoryName = chore.category ? chore.category.name : '';
@@ -150,32 +114,6 @@ const HomeScreen: React.FC = () => {
     <SafeAreaProvider>
       <SafeAreaView>
         <ScrollView>
-          <Modal
-            visible={isModalVisible}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={() => setIsModalVisible(false)}
-          >
-            <ThemedView style={styles.modalContainer}>
-              <ThemedView style={styles.modalContent}>
-                <Text>Are you sure you want to delete?</Text>
-                <ThemedView style={styles.buttonContainer}>
-                  <TouchableOpacity
-                    style={[styles.button, styles.cancelButton]}
-                    onPress={() => setIsModalVisible(false)}
-                  >
-                    <ThemedText style={styles.buttonText}>Cancel</ThemedText>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.button, styles.deleteButton]}
-                    onPress={confirmDeleteChore}
-                  >
-                    <ThemedText style={styles.buttonText}>Delete</ThemedText>
-                  </TouchableOpacity>
-                </ThemedView>
-              </ThemedView>
-            </ThemedView>
-          </Modal>
           <ThemedView style={styles.container}>
             <ThemedView
               style={[
@@ -237,7 +175,14 @@ const HomeScreen: React.FC = () => {
             >
               Logout
             </ThemedText>
-            {sections && <Categories sections={sections} />}
+            {sections && (
+              <Categories
+                sections={sections}
+                onCategoryPress={(categoryId) => {
+                  router.push(`/single-category?categoryId=${categoryId}`);
+                }}
+              />
+            )}
           </ThemedView>
         </ScrollView>
       </SafeAreaView>

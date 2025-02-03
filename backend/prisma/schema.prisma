@@ -25,7 +25,11 @@ model User {
   chores          Chore[]
   points          Point[]
   households      Household[] @relation("UserHouseholds") // Many-to-many relationship
+  assignedChores  Chore[]     @relation("AssignedChores")
   completedChores Chore[]     @relation("CompletedChores")
+  Category        Category[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @default(now())
 
   @@map("user")
 }
@@ -35,6 +39,7 @@ model Chore {
   name            String
   frequency       Int
   userId          Int
+  assignedToId    Int? // The user assigned to the chore
   isCompleted     Boolean          @default(false) @map("is_completed")
   point           Int
   image           String?
@@ -42,9 +47,23 @@ model Chore {
   description     String?
   householdChores HouseholdChore[]
   user            User             @relation(fields: [userId], references: [id])
+  assignedTo      User?            @relation("AssignedChores", fields: [assignedToId], references: [id])
   completedBy     User?            @relation("CompletedChores", fields: [completedById], references: [id])
+  categoryId      Int?
+  category        Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @default(now())
+  completeBy      DateTime         @default(now())
 
   @@map("chore")
+}
+
+model Category {
+  id     Int     @id @default(autoincrement())
+  name   String
+  userId Int?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chores Chore[]
 }
 
 model Household {
@@ -55,6 +74,8 @@ model Household {
   isSetup                Boolean          @default(false)
   householdChores        HouseholdChore[]
   users                  User[]           @relation("UserHouseholds")
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @default(now())
 
   @@map("household")
 }
@@ -64,6 +85,8 @@ model HouseholdChore {
   choreId     Int
   household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
   chore       Chore     @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now())
 
   @@id([householdId, choreId])
   @@map("household_chore")
@@ -77,6 +100,7 @@ model Point {
   userId    Int
   user      User     @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
 
   @@map("point")
 }

@@ -18,6 +18,7 @@ import {
   hashPassword,
   verifyToken,
 } from '../../auth';
+import { defaultCategories, defaultChores } from '../../defaultChores';
 export interface User {
   id: number;
   email: string;
@@ -65,6 +66,50 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
     return decryptedUsers;
   };
 
+  private async createDefaultCategoriesAndChores(
+    userId: number,
+    householdId: number,
+  ) {
+    // Create default categories
+    const createdCategories = await Promise.all(
+      defaultCategories.map((category) =>
+        prisma.category.create({
+          data: { ...category, userId },
+        }),
+      ),
+    );
+    // Create a map of category names to their IDs
+    const categoryMap = createdCategories.reduce(
+      (map, category) => {
+        map[category.name] = category.id;
+        return map;
+      },
+      {} as Record<string, number>,
+    );
+
+    // Create default chores
+    await Promise.all(
+      defaultChores.map((chore) =>
+        prisma.chore.create({
+          data: {
+            name: chore.name,
+            point: chore.point,
+            frequency: 0,
+            userId,
+            categoryId: categoryMap[chore.categoryName],
+            isCompleted: false,
+            assignedToId: userId,
+            householdChores: {
+              create: {
+                householdId: householdId,
+              },
+            },
+          },
+        }),
+      ),
+    );
+  }
+
   private createUserMutationResolver = async (
     _source: unknown,
     args: IGraphQLDefaultArgs,
@@ -111,40 +156,10 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
       const household = user.households[0]; // Get the created household
 
       if (!household) {
-        throw new Error('Household creation failed');
+        throw new Error(`Household doesn't exist;`);
       }
 
-      const defaultChores = [
-        { name: 'Take out trash', frequency: 7, point: 10 },
-        { name: 'Wash dishes', frequency: 1, point: 5 },
-        { name: 'Vacuum living room', frequency: 3, point: 8 },
-        { name: 'Clean bathroom', frequency: 7, point: 12 },
-        { name: 'Do laundry', frequency: 7, point: 7 },
-        { name: 'Mop the floor', frequency: 3, point: 9 },
-        { name: 'Water plants', frequency: 4, point: 4 },
-        { name: 'Wipe windows', frequency: 14, point: 6 },
-        { name: 'Dust furniture', frequency: 7, point: 5 },
-        { name: 'Organize shelves', frequency: 14, point: 8 },
-      ];
-
-      const createdChores = await Promise.all(
-        defaultChores.map((chore) =>
-          prisma.chore.create({
-            data: {
-              ...chore,
-              userId: user.id,
-            },
-          }),
-        ),
-      );
-
-      // Link created chores to the household
-      await prisma.householdChore.createMany({
-        data: createdChores.map((chore) => ({
-          householdId: household.id,
-          choreId: chore.id,
-        })),
-      });
+      await this.createDefaultCategoriesAndChores(user.id, household.id);
 
       return {
         ...user,
@@ -155,6 +170,7 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
       throw error;
     }
   };
+
   private userResolver = async (
     _source: unknown,
     args: IGraphQLDefaultArgs,
@@ -223,7 +239,11 @@ export class Users implements IQueryFieldCollection<unknown, unknown> {
       },
       include: {
         households: true,
-        chores: true,
+        chores: {
+          include: {
+            category: true,
+          },
+        },
       },
     });
     return {

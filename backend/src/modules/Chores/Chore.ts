@@ -34,6 +34,7 @@ export class Chore implements IQueryFieldCollection<unknown, unknown> {
       },
       include: {
         user: true,
+        category: true,
       },
     });
     return chores;

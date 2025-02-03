@@ -1,8 +1,14 @@
-import { GraphQLBoolean, GraphQLInt, GraphQLList, GraphQLObjectType, GraphQLString } from "graphql";
-import { Household } from "../Households/Household";
+import {
+  GraphQLBoolean,
+  GraphQLInt,
+  GraphQLList,
+  GraphQLObjectType,
+  GraphQLString,
+} from 'graphql';
+import { Household } from '../Households/Household';
 
 export const UserGraphQLType = new GraphQLObjectType({
-  name: "User",
+  name: 'User',
   fields: {
     id: { type: GraphQLInt },
     name: { type: GraphQLString },
@@ -18,40 +24,49 @@ export const UserGraphQLType = new GraphQLObjectType({
             frequency: { type: GraphQLInt },
             isCompleted: { type: GraphQLBoolean },
             point: { type: GraphQLInt },
+            category: {
+              type: new GraphQLObjectType({
+                name: 'userChoreCategories',
+                fields: {
+                  id: { type: GraphQLInt },
+                  name: { type: GraphQLString },
+                },
+              }),
+            },
             householdChores: {
               type: new GraphQLList(
                 new GraphQLObjectType({
                   name: 'userHouseholdChores',
                   fields: {
                     householdId: { type: GraphQLInt },
-                    choreId: { type: GraphQLInt }
-                  }
-                })
-              )
-            }
-          }
-        })
-      )
+                    choreId: { type: GraphQLInt },
+                  },
+                }),
+              ),
+            },
+          },
+        }),
+      ),
     },
     households: {
       type: new GraphQLList(
         new GraphQLObjectType({
-          name: "UserHouseholds",
+          name: 'UserHouseholds',
           fields: {
             id: { type: GraphQLInt },
             name: { type: GraphQLString },
-            householdInvitationURL: { type: GraphQLString },  // Add URL if needed
+            householdInvitationURL: { type: GraphQLString }, // Add URL if needed
             isSetup: { type: GraphQLBoolean },
             isDefaultHousehold: { type: GraphQLBoolean },
           },
-        })
+        }),
       ),
     },
   },
 });
 
 export const LoginResponseType = new GraphQLObjectType({
-  name: "LoginResponse",
+  name: 'LoginResponse',
   fields: {
     token: { type: GraphQLString },
     user: { type: UserGraphQLType },

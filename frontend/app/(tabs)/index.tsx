@@ -8,6 +8,11 @@ import {
   ScrollView,
   Dimensions,
   useColorScheme,
+  Modal,
+  Button,
+  Text,
+  TouchableOpacity,
+  SectionList,
 } from 'react-native';
 import React, { useCallback, useState } from 'react';
 import { HelloWave } from '@/components/HelloWave';
@@ -36,6 +41,7 @@ import Household from '@/lib/utils/types/Household';
 import { useUser } from '@/lib/utils/useUser';
 import { GET_CHORES_FOR_USER, REMOVE_CHORE } from '@/queries/chore-query';
 import { client } from '@/ApolloClient';
+import Categories from '@/components/Categories';
 
 interface IHomeScreenProps {
   chores: Chore[];
@@ -69,6 +75,8 @@ const HomeScreen: React.FC = () => {
     fetchPolicy: 'network-only',
   });
   const { currentUser, loading, error } = useUser();
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [choreToDelete, setChoreToDelete] = useState<number | null>(null);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -84,7 +92,6 @@ const HomeScreen: React.FC = () => {
   useEffect(() => {
     if (data && data.chores) {
       setState((s) => ({ ...s, chores: data.chores }));
-      console.log(chores);
     }
   }, [data]);
 
@@ -93,16 +100,46 @@ const HomeScreen: React.FC = () => {
   const logout = useLogout();
 
   const handleDeleteChore = async (id: number) => {
-    try {
-      await removeSelectedChore(client, id);
-      setState((prevState) => ({
-        ...prevState,
-        chores: prevState.chores.filter((chore) => chore.id !== id),
-      }));
-    } catch (error) {
-      console.error('Error deleting chore:', error);
+    setChoreToDelete(id);
+    setIsModalVisible(true);
+  };
+
+  const confirmDeleteChore = async () => {
+    if (choreToDelete !== null) {
+      try {
+        await removeSelectedChore(client, choreToDelete);
+        setState((prevState) => ({
+          ...prevState,
+          chores: prevState.chores.filter(
+            (chore) => chore.id !== choreToDelete,
+          ),
+        }));
+      } catch (error) {
+        console.error('Error deleting chore:', error);
+      } finally {
+        setIsModalVisible(false);
+        setChoreToDelete(null);
+      }
     }
   };
+
+  const groupedChores = chores.reduce(
+    (acc, chore) => {
+      const categoryName = chore.category.name;
+      if (!acc[categoryName]) {
+        acc[categoryName] = [];
+      }
+      acc[categoryName].push(chore);
+      return acc;
+    },
+    {} as Record<string, typeof chores>,
+  );
+
+  // Create the sections for SectionList
+  const sections = Object.keys(groupedChores).map((categoryName) => ({
+    title: categoryName,
+    data: groupedChores[categoryName].sort((a, b) => a.frequency - b.frequency), // Sort by frequency
+  }));
 
   if (loading) return <ThemedText>Loading...</ThemedText>;
   if (error) {
@@ -113,6 +150,32 @@ const HomeScreen: React.FC = () => {
     <SafeAreaProvider>
       <SafeAreaView>
         <ScrollView>
+          <Modal
+            visible={isModalVisible}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setIsModalVisible(false)}
+          >
+            <ThemedView style={styles.modalContainer}>
+              <ThemedView style={styles.modalContent}>
+                <Text>Are you sure you want to delete?</Text>
+                <ThemedView style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={[styles.button, styles.cancelButton]}
+                    onPress={() => setIsModalVisible(false)}
+                  >
+                    <ThemedText style={styles.buttonText}>Cancel</ThemedText>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.button, styles.deleteButton]}
+                    onPress={confirmDeleteChore}
+                  >
+                    <ThemedText style={styles.buttonText}>Delete</ThemedText>
+                  </TouchableOpacity>
+                </ThemedView>
+              </ThemedView>
+            </ThemedView>
+          </Modal>
           <ThemedView style={styles.container}>
             <ThemedView
               style={[
@@ -164,8 +227,7 @@ const HomeScreen: React.FC = () => {
                 currentUser.households.find(
                   (household: Household) => household.isDefaultHousehold,
                 ).name
-              }{' '}
-              Household
+              }
             </ThemedText>
 
             <ThemedText
@@ -175,31 +237,7 @@ const HomeScreen: React.FC = () => {
             >
               Logout
             </ThemedText>
-
-            {chores &&
-              chores.map((chore: Chore) => (
-                <ThemedText
-                  key={chore.id}
-                  style={{
-                    width: '100%',
-                    display: 'flex',
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <ThemedText>Name: {chore.name}</ThemedText>
-                  <ThemedText
-                    onPress={() => {
-                      handleDeleteChore(chore.id);
-                    }}
-                  >
-                    {' '}
-                    Delete{' '}
-                  </ThemedText>
-                  <ThemedText>Difficulty{chore.point}</ThemedText>
-                </ThemedText>
-              ))}
+            <Categories sections={sections} />
           </ThemedView>
         </ScrollView>
       </SafeAreaView>
@@ -232,6 +270,75 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#ffffff',
     marginVertical: 4,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    width: 300,
+    padding: 20,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  modalText: {
+    marginBottom: 20,
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  button: {
+    flex: 1,
+    padding: 10,
+    margin: 5,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#ccc',
+  },
+  deleteButton: {
+    backgroundColor: '#f00',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  categoryContainer: {
+    marginBottom: 20,
+  },
+  categoryTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  choreItem: {
+    padding: 10,
+    marginBottom: 10,
+    backgroundColor: '#f0f0f0',
+    borderRadius: 5,
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  sectionContainer: {
+    display: 'flex',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  sectionTitle: {
+    paddingHorizontal: 20,
+    paddingVertical: 30,
+    backgroundColor: 'pink',
+    marginVertical: 10,
+    borderRadius: 5,
   },
 });
 

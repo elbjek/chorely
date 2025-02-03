@@ -4,4 +4,8 @@ export default interface Chore {
   isCompleted: boolean;
   frequency: number;
   point: number;
+  category: {
+    id: number;
+    name: string;
+  };
 }

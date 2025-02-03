@@ -40,6 +40,10 @@ export const GET_CHORES_FOR_USER = gql`
         id
         name
       }
+      category {
+        id
+        name
+      }
     }
   }
 `;

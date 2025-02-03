@@ -56,9 +56,7 @@ const createChore: React.FC = () => {
       description: '',
     },
   );
-  useEffect(() => {
-    console.log(points);
-  });
+
   const { currentUser, loading } = useUser();
   const navigation = useNavigation();
 

@@ -17,5 +17,14 @@ export const ChoreGraphQLType = new GraphQLObjectType({
     description: { type: GraphQLString },
     frequency: { type: GraphQLInt },
     isCompleted: { type: GraphQLBoolean },
+    category: {
+      type: new GraphQLObjectType({
+        name: 'choreCategories',
+        fields: {
+          id: { type: GraphQLInt },
+          name: { type: GraphQLString },
+        },
+      }),
+    },
   },
 });

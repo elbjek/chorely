@@ -41,7 +41,7 @@ const Header = () => {
       <ThemedText type="default">
         {greeting}{' '}
         <ThemedText style={{ textTransform: 'capitalize' }}>
-          {currentUser.name ?? 'Unknown'}
+          {currentUser && currentUser.name ? currentUser.name : 'Unknown'}
         </ThemedText>
       </ThemedText>
 

@@ -51,7 +51,7 @@ const singleCategory: React.FC = () => {
   const categoryId = searchParams.get('categoryId');
   const [{ chores, title }, setState] = useState<{
     chores: Chore[];
-    title: '';
+    title: string;
   }>({ chores: [], title: '' });
 
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -65,17 +65,25 @@ const singleCategory: React.FC = () => {
           Number(categoryId),
           currentUser.id,
         );
-        setState((s) => ({
-          ...s,
-          chores: data.choresByCategory,
-          title: data.choresByCategory[0].category.name,
-        }));
+        console.log(data.choresByCategory);
+        if (data.choresByCategory) {
+          const firstChore = data.choresByCategory[0];
+          const categoryName = firstChore;
+          console.log(data.choresByCategory);
+          // ? firstChore.category.name
+          // : 'Unknown Category';
+          setState((s) => ({
+            ...s,
+            chores: data.choresByCategory,
+            title: 'Unknown Category',
+          }));
+        }
       } catch (err) {
         console.error(err);
       }
     };
     fetchChores();
-  });
+  }, []);
 
   const handleDeleteChore = async (id: number) => {
     setChoreToDelete(id);
@@ -138,7 +146,7 @@ const singleCategory: React.FC = () => {
             </ThemedView>
           </Modal>
           <ThemedView style={styles.container}>
-            <ThemedText type="title">{title}</ThemedText>
+            <ThemedText type="title">{title ?? 'N/a'}</ThemedText>
             {chores.map((chore: any, index: number) => (
               <ThemedView
                 style={styles.choreItem}

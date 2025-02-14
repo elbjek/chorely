@@ -34,6 +34,14 @@ model User {
   @@map("user")
 }
 
+// TODO: ADD CHORE TYPES
+// TODO: USERS CAN RE-ASSIGN CHORES ONLY IF THEY WON FOR THE DAY
+// TODO: CHANGE POINT SYSTEM TO SH-H-M-L
+// TODO: ALLOW ONLY TWO SUPER HARD CHORES PER DAY
+// TODO: ADD PET CATEGORY
+// TODO: ADD LEADERBOARD
+// TODO: GAMIFIED RANKS Newbie → Apprentice → Pro → Master.
+
 model Chore {
   id              Int              @id @default(autoincrement())
   name            String

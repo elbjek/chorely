@@ -137,7 +137,6 @@ const createChore: React.FC = () => {
 
   const handleSelectCategory = (catId: any) => {
     setState((s) => ({ ...s, selectedCategory: catId }));
-    console.log(catId);
     setIsPickerVisible(false); // Close the modal after selection
   };
 
@@ -149,7 +148,7 @@ const createChore: React.FC = () => {
             <ThemedText type="default">
               {greeting}{' '}
               <ThemedText style={{ textTransform: 'capitalize' }}>
-                {currentUser.name ?? 'Unknown'}
+                {currentUser && currentUser.name ? currentUser.name : 'Unknown'}
               </ThemedText>
             </ThemedText>
             <ThemedText type="title" style={{ marginTop: 20 }}>

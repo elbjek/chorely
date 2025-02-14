@@ -135,7 +135,9 @@ const HomeScreen: React.FC = () => {
               <ThemedText type="default">
                 {greeting}{' '}
                 <ThemedText style={{ textTransform: 'capitalize' }}>
-                  {currentUser.name ?? 'Unknown'}
+                  {currentUser && currentUser.name
+                    ? currentUser.name
+                    : 'Unknown'}
                 </ThemedText>
               </ThemedText>
 
@@ -161,11 +163,11 @@ const HomeScreen: React.FC = () => {
             </ThemedView>
 
             <ThemedText type="title" style={{ textTransform: 'capitalize' }}>
-              {
+              {currentUser &&
+                currentUser.households &&
                 currentUser.households.find(
                   (household: Household) => household.isDefaultHousehold,
-                ).name
-              }
+                ).name}
             </ThemedText>
 
             <ThemedText
